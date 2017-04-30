@@ -1,9 +1,9 @@
 /** @file
    Interfejs klasy wielomianów
 
-   @author Jakub Pawlewicz <pan@mimuw.edu.pl>, TODO
+   @author Jakub Pawlewicz <pan@mimuw.edu.pl>, Radosław Waśko <rw386491@students.mimuw.edu.pl>
    @copyright Uniwersytet Warszawski
-   @date 2017-04-24, TODO
+   @date 2017-04-24, 2017-05-10
 */
 
 #ifndef __POLY_H__
@@ -18,13 +18,20 @@ typedef long poly_coeff_t;
 /** Typ wykładników wielomianu */
 typedef int poly_exp_t;
 
+/* Forward-declaration, bo mamy cykliczne odwołania Mono<->Poly */
+typedef struct Mono Mono;
+
 /**
  * Struktura przechowująca wielomian
  * TODO
  */
 typedef struct Poly
 {
-    /* TODO */
+    union{
+        poly_coeff_t coeff;///< współczynnik (jeśli length == 0)
+        Mono* monos;///< lista jednomianów, których sumą jest ten wielomian, wykładniki są parami różne
+    };
+    unsigned int length;///< ilość jednomianów (lub 0 gdy wielomian stały)
 } Poly;
 
 /**
@@ -47,7 +54,10 @@ typedef struct Mono
  */
 static inline Poly PolyFromCoeff(poly_coeff_t c)
 {
-    /* TODO */
+    Poly p;
+    p.coeff = c;
+    p.length = 0;
+    return p;
 }
 
 /**
@@ -56,7 +66,7 @@ static inline Poly PolyFromCoeff(poly_coeff_t c)
  */
 static inline Poly PolyZero()
 {
-    /* TODO */
+    return PolyFromCoeff(0);
 }
 
 /**
@@ -78,7 +88,7 @@ static inline Mono MonoFromPoly(const Poly *p, poly_exp_t e)
  */
 static inline bool PolyIsCoeff(const Poly *p)
 {
-    /* TODO */
+    return (p->length == 0);
 }
 
 /**
@@ -88,7 +98,7 @@ static inline bool PolyIsCoeff(const Poly *p)
  */
 static inline bool PolyIsZero(const Poly *p)
 {
-    /* TODO */
+    return PolyIsCoeff(p) && p->coeff == 0;
 }
 
 /**
@@ -103,7 +113,7 @@ void PolyDestroy(Poly *p);
  */
 static inline void MonoDestroy(Mono *m)
 {
-    /* TODO */
+    PolyDestroy(&m->p);
 }
 
 /**
@@ -120,7 +130,10 @@ Poly PolyClone(const Poly *p);
  */
 static inline Mono MonoClone(const Mono *m)
 {
-    /* TODO */
+    Mono clone;
+    clone.exp = m->exp;
+    clone.p = PolyClone(&m->p);
+    return clone;
 }
 
 /**
