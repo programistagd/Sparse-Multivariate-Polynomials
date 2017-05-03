@@ -151,7 +151,7 @@ Poly PolyAdd(const Poly *p, const Poly *q);
  * @param[in] monos : tablica jednomianów
  * @return wielomian będący sumą jednomianów
  */
-Poly PolyAddMonos(unsigned count, const Mono monos[]);
+Poly PolyAddMonos(unsigned count, Mono monos[]);//FIXME czy mogę wywalić tego const
 
 /**
  * Mnoży dwa wielomiany.
