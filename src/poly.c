@@ -26,7 +26,7 @@ Poly PolyClone(const Poly *p){
     }
     return n;
 }
-
+#include <stdio.h>
 Poly PolyAdd(const Poly *p, const Poly *q){
     if(PolyIsCoeff(p) && PolyIsCoeff(q)){//szczególny przypadek - dodanie dwóch zwykłych liczb - nie bawimy się w ogóle zarządzaniem pamięcią
         return PolyFromCoeff(p->coeff + q->coeff);
@@ -69,13 +69,16 @@ Poly PolyAdd(const Poly *p, const Poly *q){
             Mono m;
             m.exp = pm->exp;
             m.p = PolyAdd(&pm->p, &qm->p);
-            
+
             if(PolyIsZero(&m.p)){//jeśli się wyzerowało
                 PolyDestroy(&m.p);//czyścimy
             }
             else{//a jeśli nie, to wrzucamy do wyniku
                 r.monos[r.length++] = m;
             }
+
+            pi++;
+            qi++;
         }
         else if(pm->exp < qm->exp){//przerzucamy mniejszy współczynnik (większy czeka na potencjalną parę)
             r.monos[r.length++] = MonoClone(pm);
@@ -174,10 +177,54 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
     return p;
 }
 
+Poly MonoMul(const Mono* m, const Poly* p){
+    if(PolyIsCoeff(p)){//jeśli p jest współczynnikiem, mnożymy wnętrze jednomianu przez niego
+        Mono mc;
+        mc.p = PolyMul(&m->p, p);
+        mc.exp = m->exp;
+        Poly r = PolyAddMonos(1, &mc);
+        return r;
+    }
+    
+    //jeśli p jest sumą jednomianów, mnożymy każdy z nich oddzielnie i łączymy w wielomian
+    Poly r;
+    r.length = p->length;
+    r.monos = malloc(sizeof(Mono) * r.length);
+
+    for(unsigned int i = 0; i < r.length; ++i){
+        //r[i] = p[i] * m
+        r.monos[i].exp = m->exp + p->monos[i].exp;//dodajemy wykładniki
+        r.monos[i].p = PolyMul(&m->p, &p->monos[i].p);//mnożymy współczynniki (potencjalnie wielomiany kolejnej zmiennej)
+    }
+
+    return r;
+}
+
 Poly PolyMul(const Poly *p, const Poly *q){
-    (void) p;
-    (void) q;
-    exit(0);//TODO
+    if(PolyIsCoeff(p) && PolyIsCoeff(q)){
+        return PolyFromCoeff(p->coeff * q->coeff);
+    }
+
+    //conajmniej jeden z wielomianów nie jest współczynnikiem
+    if(p->length == 0){//mnożenie jest przemienne, więc jeśli to wielomian p był stały, zamieniamy argumenty miejscami
+        return PolyMul(q, p);
+    }
+
+    //od tego miejsca możemy (jakby bez straty ogólności) założyć, że wielomian p składa się z conajmniej jednego jednomianu
+
+    //mnożymy poszczególne jednomiany przez drugi wielomian i sukcesywnie sumujemy wynik
+    Poly acc = MonoMul(&p->monos[0], q);
+    for(unsigned int i = 1; i < p->length; ++i){
+        Poly m = MonoMul(&p->monos[i], q);
+        Poly sum = PolyAdd(&acc, &m);//dodajemy do wyniku kolejną składową
+
+        PolyDestroy(&m);//sprzątamy już niepotrzebne wielomiany
+        PolyDestroy(&acc);//niszczymy stary akumulator
+
+        acc = sum;//nowy akumulator to policzona suma
+    }
+
+    return acc;
 }
 
 Poly PolyNeg(const Poly *p){

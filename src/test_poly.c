@@ -1,6 +1,7 @@
 #include "poly.h"
 
 #include <assert.h>
+#include <stdio.h>
 
 //temporary:
 void PolyPrint(const Poly* p, int var);
@@ -9,28 +10,51 @@ int main()
 {
     Poly zero = PolyZero();
     Poly c1 = PolyFromCoeff(1);
+    Poly n1 = PolyFromCoeff(-1);
     Poly c2 = PolyFromCoeff(2);
     Mono mx = MonoFromPoly(&c1, 1);
     Mono mx2 = MonoFromPoly(&c1, 2);
     Poly x = PolyAddMonos(1, &mx);
     Poly x2 = PolyAddMonos(1, &mx2);
     
-    PolyPrint(&zero, 0);
-    PolyPrint(&c1, 0);
-    PolyPrint(&c2, 0);
-    PolyPrint(&x, 0);
-    PolyPrint(&x2, 0);
+    printf("0 = "); PolyPrint(&zero, 0);
+    printf("1 = "); PolyPrint(&c1, 0);
+    printf("2 = "); PolyPrint(&c2, 0);
+    printf("-1 = "); PolyPrint(&n1, 0);
+    printf("x = "); PolyPrint(&x, 0);
+    printf("x^2 = "); PolyPrint(&x2, 0);
+
+    Poly c2x = PolyMul(&c2, &x);
+    Poly c4 = PolyMul(&c2, &c2);
+    Poly n4 = PolyMul(&c4, &n1);
+    Poly x3 = PolyMul(&x, &x2);
+    Poly x4 = PolyMul(&x2, &x2);
+    Poly n4x3 = PolyMul(&x3, &n4);
+
+    printf("2x = "); PolyPrint(&c2x, 0);
+    printf("4 = "); PolyPrint(&c4, 0);
+    printf("-4 = "); PolyPrint(&n4, 0);
+    printf("x^3 = "); PolyPrint(&x3, 0);
+    printf("x^4 = "); PolyPrint(&x4, 0);
+    printf("-4x^3 = "); PolyPrint(&n4x3, 0);
 
     Poly c2px = PolyAdd(&c2, &x);
     Poly c2pxpx2 = PolyAdd(&c2px, &x2);
 
-    PolyPrint(&c2px, 0);
-    PolyPrint(&c2pxpx2, 0);
+    printf("2+x = "); PolyPrint(&c2px, 0);
+    printf("2+x+x^2 = "); PolyPrint(&c2pxpx2, 0);
 
-    /*Poly c2test = PolySub(&c2px, &x);
+    Poly c3 = PolyAdd(&c2, &c1);
+    printf("3 = "); PolyPrint(&c3, 0);
 
+    Poly c5px = PolyAdd(&c3, &c2px);
+    printf("5+x = "); PolyPrint(&c5px, 0);
+
+    Poly c2test = PolySub(&c2px, &x);
+
+    printf("2 = "); PolyPrint(&c2test, 0);
     assert(PolyIsEq(&c2, &c2test));
-    */
+    
     Poly x_2 = PolyClone(&x);
     Mono my = MonoFromPoly(&x_2, 0);
     Poly x_3 = PolyClone(&x);
@@ -39,6 +63,17 @@ int main()
     Poly y = PolyAddMonos(1, &my);
     Poly xy = PolyAddMonos(1, &mxy);
 
-    PolyPrint(&y, 0);
-    PolyPrint(&xy, 0);
+    printf("y = "); PolyPrint(&y, 0);
+    printf("xy = "); PolyPrint(&xy, 0);
+
+    Poly c1py = PolyAdd(&c1, &y);
+    printf("1+y = "); PolyPrint(&c1py, 0);
+
+    Poly c2pxXc1py = PolyMul(&c2px, &c1py);
+    printf("(1+y)(2+x) = 2+2y+x+xy = "); PolyPrint(&c2pxXc1py, 0);
+
+    Poly mul2 = PolyMul(&c2pxpx2, &c2px);
+    printf("(2+x+x^2)(2+x) = 4 + 4x + 3x^2 + x^3 = "); PolyPrint(&mul2, 0);
+
+    //TODO cleanup -> PolyDestroy all
 }
