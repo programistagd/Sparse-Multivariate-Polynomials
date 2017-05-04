@@ -134,7 +134,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
     p.monos = malloc(count * sizeof(Mono));
     memcpy(p.monos, monos, count * sizeof(Mono));
     //sortujemy jednomiany po niemalejącym wykładniku
-    qsort((void*) p.monos, count, sizeof(Mono), compare_monos);//TODO zrobić coś z tym const?
+    qsort((void*) p.monos, count, sizeof(Mono), compare_monos);
     p.length = 0;
     for(unsigned int i = 0; i < count; ++i){
         if(p.length > 0){
@@ -281,10 +281,39 @@ bool PolyIsEq(const Poly *p, const Poly *q){
     return true;
 }
 
+static poly_coeff_t Exp(poly_coeff_t x, poly_exp_t k){
+    //TODO fast exponentiation in log(k)
+    poly_coeff_t r = 1;
+    while(k-- > 0) r*= x;
+    return r;
+}
+
 Poly PolyAt(const Poly *p, poly_coeff_t x){
-    (void) p;
-    (void) x;
-    exit(0);//TODO
+    if(PolyIsCoeff(p)) return PolyClone(p);//wielomain będący tylko współczynnikiem pozostaje niezmieniony (wprawdzie współczynnik nie używa dynamicznej pamięci ale na wszelki wypadek zwracamy kopię, gdyby coś się zmieniło)
+
+    poly_exp_t prevk = p->monos[0].exp;
+    poly_coeff_t xk = Exp(x, prevk);
+
+    Poly coeff = PolyFromCoeff(xk);
+    Poly r = PolyMul(&p->monos[0].p, &coeff);
+
+    for(unsigned int i = 1; i < p->length; ++i){
+        poly_exp_t k = p->monos[i].exp;
+        xk = xk * Exp(x, k - prevk);
+        prevk = k;
+
+        Poly coeff = PolyFromCoeff(xk);//tego wielomianu nie niszczę bo nie alokuje on pamięci
+        Poly m = PolyMul(&p->monos[i].p, &coeff);
+
+        Poly sum = PolyAdd(&m, &r);
+
+        PolyDestroy(&m);//niszczymy wielomian pomocniczy
+        PolyDestroy(&r);//niszczymy stary wynik (już mamy nowy)
+
+        r = sum;//podmieniamy
+    }
+
+    return r;
 }
 
 //debugging functions
@@ -301,7 +330,7 @@ void PolyPrint(const Poly* p, int var){
         printf("%ld",p->coeff);
     }
     else{
-        if(p->length > 1){
+        if(p->length > 1 && var != 0){
             printf("(");
         }
 
@@ -322,7 +351,7 @@ void PolyPrint(const Poly* p, int var){
             }
         }
 
-        if(p->length > 1){
+        if(p->length > 1 && var != 0){
             printf(")");
         }
     }

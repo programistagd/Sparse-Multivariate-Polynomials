@@ -75,5 +75,23 @@ int main()
     Poly mul2 = PolyMul(&c2pxpx2, &c2px);
     printf("(2+x+x^2)(2+x) = 4 + 4x + 3x^2 + x^3 = "); PolyPrint(&mul2, 0);
 
+    {
+        Poly v2 = PolyAt(&c2, 123);
+        printf("2 = "); PolyPrint(&v2, 0);
+
+        Poly v27 = PolyAt(&x3, 3);
+        printf("27 = "); PolyPrint(&v27, 0);
+
+        Poly v8 = PolyAt(&c2pxpx2, -3);
+        printf("8 = "); PolyPrint(&v8, 0);
+
+        Poly v12 = PolyAt(&mul2, 1);
+        Poly v4 = PolyAt(&mul2, 0);
+        printf("12 = "); PolyPrint(&v12, 0);
+        printf("4 = "); PolyPrint(&v4, 0);
+
+        Poly v5p5y = PolyAt(&c2pxXc1py, 3);
+        printf("5+5x = "); PolyPrint(&v5p5y, 0);
+    }
     //TODO cleanup -> PolyDestroy all
 }
