@@ -27,7 +27,18 @@ int main()
     PolyPrint(&c2px, 0);
     PolyPrint(&c2pxpx2, 0);
 
-    Poly c2test = PolySub(&c2px, &x);
+    /*Poly c2test = PolySub(&c2px, &x);
 
     assert(PolyIsEq(&c2, &c2test));
+    */
+    Poly x_2 = PolyClone(&x);
+    Mono my = MonoFromPoly(&x_2, 0);
+    Poly x_3 = PolyClone(&x);
+    Mono mxy = MonoFromPoly(&x_3, 1);
+       
+    Poly y = PolyAddMonos(1, &my);
+    Poly xy = PolyAddMonos(1, &mxy);
+
+    PolyPrint(&y, 0);
+    PolyPrint(&xy, 0);
 }
