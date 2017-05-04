@@ -1,6 +1,7 @@
 #include "poly.h"
 
 #include <stdlib.h>
+#include <string.h> //memcpy
 
 void PolyDestroy(Poly *p){
     if(p->length != 0){
@@ -27,8 +28,88 @@ Poly PolyClone(const Poly *p){
 }
 
 Poly PolyAdd(const Poly *p, const Poly *q){
+    if(PolyIsCoeff(p) && PolyIsCoeff(q)){//szczególny przypadek - dodanie dwóch zwykłych liczb - nie bawimy się w ogóle zarządzaniem pamięcią
+        return PolyFromCoeff(p->coeff + q->coeff);
+    }
+
     Poly r;
-    
+    r.monos = malloc(sizeof(Mono) * (p->length + q->length + 1));
+
+    const Poly* myp = p;
+    const Poly* myq = q;
+
+    //w tym miejscu conajwyżej jeden wielomian będzie stały (bo if na początku)
+    //specjalny wielomian tymczasowy, wyjątkowo alokowany na stosie (więc nie trzeba PolyDestroy)
+    Mono tmp_const;
+    Poly tmp;
+    tmp_const.exp = 0;
+    tmp.monos = &tmp_const;
+    tmp.length = 1;
+
+    if(p->length == 0){
+        tmp_const.p = PolyFromCoeff(p->coeff);
+        myp = &tmp;
+    }
+
+    if(q->length == 0){
+        tmp_const.p = PolyFromCoeff(q->coeff);
+        myq = &tmp;
+    }
+
+    unsigned int pi = 0;
+    unsigned int qi = 0;
+    r.length = 0;
+
+    //dodawanie i przerzucanie
+    while(pi < myp->length && qi < myq->length){
+        const Mono* pm = &myp->monos[pi];
+        const Mono* qm = &myq->monos[qi];
+
+        if(pm->exp == qm->exp){//równe wykładniki, dodajemy
+            Mono m;
+            m.exp = pm->exp;
+            m.p = PolyAdd(&pm->p, &qm->p);
+            
+            if(PolyIsZero(&m.p)){//jeśli się wyzerowało
+                PolyDestroy(&m.p);//czyścimy
+            }
+            else{//a jeśli nie, to wrzucamy do wyniku
+                r.monos[r.length++] = m;
+            }
+        }
+        else if(pm->exp < qm->exp){//przerzucamy mniejszy współczynnik (większy czeka na potencjalną parę)
+            r.monos[r.length++] = MonoClone(pm);
+            pi++;
+        }
+        else /*if(pm->exp > qm->exp)*/{
+            r.monos[r.length++] = MonoClone(qm);
+            qi++;
+        }
+    }
+
+    //przerzucamy resztę
+    while(pi < myp->length){
+        r.monos[r.length++] = MonoClone(&myp->monos[pi++]);
+    }
+    while(qi < myq->length){
+        r.monos[r.length++] = MonoClone(&myq->monos[qi++]);
+    }
+
+    //sprawdzamy uproszczenia
+    if(r.length == 0){//jeśli wszystko się wyzerowało -> wielomian zerowy
+        PolyDestroy(&r);//de facto free(r.monos)
+        return PolyZero();
+    }
+
+    if(r.length == 1 && r.monos[0].exp == 0 && PolyIsCoeff(&r.monos[0].p)){//jeśli wielomian jest tak naprawdę stały, upraszczamy do współczynnika
+        Poly c = r.monos[0].p;//przejmujemy wielomian zagnieżdżony
+        free(r.monos);//zwalniamy pamięć "ręcznie" (nie za pomocą PolyDestroy) bo ukradliśmy tamten wielomian a to też jedyna rzecz którą jeszcze trzeba było zwolnić
+        return c;
+    }
+
+    r.monos = realloc(r.monos, r.length * sizeof(Mono));
+
+    return r;
 }
 
 int compare_monos(const void* a, const void* b){
@@ -44,14 +125,15 @@ static void swap_monos(Mono* a, Mono* b){
     *b = c;
 }
 
-Poly PolyAddMonos(unsigned count, Mono monos[]){
+Poly PolyAddMonos(unsigned count, const Mono monos[]){
     if(count == 0) return PolyZero();
     Poly p;
-    p.monos = monos;
+    p.monos = malloc(count * sizeof(Mono));
+    memcpy(p.monos, monos, count * sizeof(Mono));
     //sortujemy jednomiany po niemalejącym wykładniku
     qsort((void*) p.monos, count, sizeof(Mono), compare_monos);//TODO zrobić coś z tym const?
     p.length = 0;
-    for(int i = 0; i < count; ++i){
+    for(unsigned int i = 0; i < count; ++i){
         if(p.length > 0){
             Mono* prev = &p.monos[p.length - 1];
             if(prev->exp == monos[i].exp){
@@ -86,13 +168,16 @@ Poly PolyAddMonos(unsigned count, Mono monos[]){
         return c;
     }
 
-    //TODO realloc monos
+    //jeśli nie używamy całej tablicy, zmniejsz jej rozmiar do minimum
+    p.monos = realloc(p.monos, p.length * sizeof(Mono));
 
     return p;
 }
 
 Poly PolyMul(const Poly *p, const Poly *q){
-
+    (void) p;
+    (void) q;
+    exit(0);//TODO
 }
 
 Poly PolyNeg(const Poly *p){
@@ -100,7 +185,7 @@ Poly PolyNeg(const Poly *p){
     return PolyMul(p, &neg1);
 }
 
-Poly PolySub(const Poly *p, const Poly *q){//simple implementation, consider optimizing???
+Poly PolySub(const Poly *p, const Poly *q){//simple implementation, TODO consider optimizing???
     Poly qneg = PolyNeg(q);
     Poly sub = PolyAdd(p, &qneg);
     PolyDestroy(&qneg);
@@ -129,7 +214,7 @@ poly_exp_t PolyDeg(const Poly *p){
     if(PolyIsZero(p)) return -1;
     
     int m = 0;
-    for(int i = 0; i < p->length; ++i){
+    for(unsigned int i = 0; i < p->length; ++i){
         int d = p->monos[i].exp + PolyDeg(&p->monos[i].p);
         if(d > m) m = d;
     }
@@ -150,7 +235,9 @@ bool PolyIsEq(const Poly *p, const Poly *q){
 }
 
 Poly PolyAt(const Poly *p, poly_coeff_t x){
-    
+    (void) p;
+    (void) x;
+    exit(0);//TODO
 }
 
 //debugging functions
@@ -171,7 +258,7 @@ void PolyPrint(const Poly* p, int var){
             printf("(");
         }
 
-        for(int i = 0; i < p->length; ++i){
+        for(unsigned int i = 0; i < p->length; ++i){
             if(i > 0){
                 printf(" + ");
             }
