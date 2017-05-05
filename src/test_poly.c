@@ -96,7 +96,7 @@ int main()
     //TODO cleanup -> PolyDestroy all
     Poly* polys[] = {
         &c1, &n1, &c2, &zero, &x, &x2, &c2x, &c4, &n4, &x3, &x4, &n4x3, 
-        &c2px, &c2pxpx2, &c3, &c5px, &c2test, &x_2, &x_3, &y, &xy,
+        &c2px, &c2pxpx2, &c3, &c5px, &c2test, &y, &xy,
         &c1py, &c2pxXc1py, &mul2,
         &v2, &v27, &v8, &v12, &v4, &v5p5y
     };
