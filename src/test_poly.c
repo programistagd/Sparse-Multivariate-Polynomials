@@ -75,7 +75,7 @@ int main()
     Poly mul2 = PolyMul(&c2pxpx2, &c2px);
     printf("(2+x+x^2)(2+x) = 4 + 4x + 3x^2 + x^3 = "); PolyPrint(&mul2, 0);
 
-    {
+    
         Poly v2 = PolyAt(&c2, 123);
         printf("2 = "); PolyPrint(&v2, 0);
 
@@ -92,6 +92,17 @@ int main()
 
         Poly v5p5y = PolyAt(&c2pxXc1py, 3);
         printf("5+5x = "); PolyPrint(&v5p5y, 0);
-    }
+    
     //TODO cleanup -> PolyDestroy all
+    Poly* polys[] = {
+        &c1, &n1, &c2, &zero, &x, &x2, &c2x, &c4, &n4, &x3, &x4, &n4x3, 
+        &c2px, &c2pxpx2, &c3, &c5px, &c2test, &x_2, &x_3, &y, &xy,
+        &c1py, &c2pxXc1py, &mul2,
+        &v2, &v27, &v8, &v12, &v4, &v5p5y
+    };
+    int polylen = sizeof(polys)/sizeof(Poly*);
+    
+    for(int i = 0; i< polylen; ++i){
+        PolyDestroy(polys[i]);
+    }
 }

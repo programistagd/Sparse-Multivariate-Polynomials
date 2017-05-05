@@ -26,7 +26,17 @@ Poly PolyClone(const Poly *p){
     }
     return n;
 }
-#include <stdio.h>
+
+static Mono* try_shrink_array(Mono* m, unsigned int new_len){
+    if(new_len == 0){
+        free(m);
+        return NULL;
+    }
+    Mono* newm = realloc(m, sizeof(Mono) * new_len);
+    if(newm == NULL) return m;
+    return newm;
+}
+
 Poly PolyAdd(const Poly *p, const Poly *q){
     if(PolyIsCoeff(p) && PolyIsCoeff(q)){//szczególny przypadek - dodanie dwóch zwykłych liczb - nie bawimy się w ogóle zarządzaniem pamięcią
         return PolyFromCoeff(p->coeff + q->coeff);
@@ -110,7 +120,7 @@ Poly PolyAdd(const Poly *p, const Poly *q){
         return c;
     }
 
-    r.monos = realloc(r.monos, r.length * sizeof(Mono));
+    r.monos = try_shrink_array(r.monos, r.length);
 
     return r;
 }
@@ -172,7 +182,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
     }
 
     //jeśli nie używamy całej tablicy, zmniejsz jej rozmiar do minimum
-    p.monos = realloc(p.monos, p.length * sizeof(Mono));
+    p.monos = try_shrink_array(p.monos, p.length);
 
     return p;
 }
@@ -189,7 +199,7 @@ Poly MonoMul(const Mono* m, const Poly* p){
     //jeśli p jest sumą jednomianów, mnożymy każdy z nich oddzielnie i łączymy w wielomian
     Poly r;
     r.length = p->length;
-    r.monos = malloc(sizeof(Mono) * r.length);
+    r.monos = malloc(sizeof(Mono) * r.length);/////LEAK
 
     for(unsigned int i = 0; i < r.length; ++i){
         //r[i] = p[i] * m
