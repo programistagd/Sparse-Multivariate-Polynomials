@@ -7,6 +7,14 @@
 #include <stdarg.h>
 #include <assert.h>
 
+void PolyPrint(const Poly* p, int var);
+
+void print_diff(const Poly* got, const Poly* expected){
+    printf("got = "); PolyPrint(got, 0);
+    printf("exp = "); PolyPrint(expected, 0);
+    printf("\n");
+}
+
 #define ALL_TESTS "all"
 #define MEMORY "memory"
 #define LONG_POLYNOMIAL "long-polynomial"
@@ -770,12 +778,12 @@ bool MulTest()
         if (!PolyIsEq(&p2, &p_res1))
         {
             fprintf(stderr, "[MulTest] PolyMul (1) error\n");
+            print_diff(&p2, &p_res1);
             return false;
         }
         PolyDestroy(&p2);
         PolyDestroy(&p_res1);
         PolyDestroy(&p1);
-        PolyDestroy(&p2);
     }
     {
         poly_coeff_t val1[] = {1, 1};
@@ -789,6 +797,7 @@ bool MulTest()
         if (!PolyIsEq(&p3, &p_res1))
         {
             fprintf(stderr, "[MulTest] PolyMul (2) error\n");
+            print_diff(&p3, &p_res1);
             return false;
         }
         PolyDestroy(&p3);
@@ -813,6 +822,7 @@ bool MulTest()
         if (!PolyIsEq(&p3, &p_res2))
         {
             fprintf(stderr, "[MulTest] PolyMul (3) error\n");
+            print_diff(&p3, &p_res2);
             return false;
         }
         PolyDestroy(&p_two);
@@ -900,6 +910,7 @@ bool AddTest1()
             {
                 fprintf(stderr, "[AddTest1] error for %lu %lu", current_max_exp,
                         local_max_exp);
+                print_diff(&p3, &p_expected_res);
                 good = false;
             }
             PolyDestroy(&p3);
@@ -912,6 +923,7 @@ bool AddTest1()
         {
             fprintf(stderr, "[AddTest1] error for %lu in PolyNeg add",
                     current_max_exp);
+            //print_diff(&p3, &p_res1);//TODO
             good = false;
         }
         PolyDestroy(&p1);
@@ -960,6 +972,7 @@ bool AddTest2()
             {
                 fprintf(stderr, "[AddTest2] error for %lu %lu\n",
                         first_poly_len, second_poly_len);
+                print_diff(&p_res, &p_expected_res);
                 good = false;
             }
             PolyDestroy(&p_res);
@@ -1068,6 +1081,10 @@ bool SubTest2()
             {
                 fprintf(stderr, "[SubTest2] error for %lu %lu\n",
                         first_poly_len, second_poly_len);
+                printf("a = "); PolyPrint(&p2, 0);
+                printf("b = "); PolyPrint(&p1, 0);
+                printf("a - b = \n");
+                print_diff(&p_res, &p_expected_res);
                 good = false;
             }
             PolyDestroy(&p2);
