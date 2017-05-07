@@ -9,6 +9,8 @@ void PolyDestroy(Poly *p){
             MonoDestroy(&p->monos[i]);
         }
         free(p->monos);
+        p->monos = NULL;//na wypadek gdyby ktoś próbował destroyować ten wielomian po raz drugi, wyzeruj dane
+        p->length = 0;
     }
 }
 
@@ -27,6 +29,12 @@ Poly PolyClone(const Poly *p){
     return n;
 }
 
+/**
+ * Próbuje zmniejszyć zaalokowaną tablicę jednomianów do nowej wielkości
+ * @param[in] m : wskaźnik do poczatku tablicy jednomianów
+ * @param[in] new_len : nowa zadana długość (może być 0, wtedy tablica jest zwalniana)
+ * @return nowy wskaźnik na tablicę jednomianów (potencjalnie pomniejszoną lub niezmienioną)
+ */
 static Mono* try_shrink_array(Mono* m, unsigned int new_len){
     if(new_len == 0){
         free(m);
@@ -124,14 +132,24 @@ Poly PolyAdd(const Poly *p, const Poly *q){
 
     return r;
 }
-
-int compare_monos(const void* a, const void* b){
+/**
+ * Porównuje dwa jednomiany względem ich wykładnika. Używana do posortowania jednomianów w PolyAddMonos
+ * @param[in] a : wskaźnik na pierwszy jednomian
+ * @param[in] b : wskaźnik na drugi jednomian
+ * @return różnica wykładników
+ */
+static int compare_monos(const void* a, const void* b){
     const Mono* ma = a;
     const Mono* mb = b;
 
     return ma->exp - mb->exp;
 }
 
+/**
+ * Zamienia miejscami dwa zadane jednomiany (pierwszy staje się drugim a drugi pierwszym)
+ * @param[in] a : wskaźnik na pierwszy jednomian
+ * @param[in] b : wskaźnik na drugi jednomian
+ */
 static void swap_monos(Mono* a, Mono* b){
     Mono c = *a;
     *a = *b;
@@ -291,6 +309,12 @@ bool PolyIsEq(const Poly *p, const Poly *q){
     return true;
 }
 
+/**
+ * Podnosi x do potęgi k
+ * @param[in] x : podstawa potęgowania
+ * @param[in] b : wykładnik
+ * @return x^k
+ */
 static poly_coeff_t Exp(poly_coeff_t x, poly_exp_t k){
     //TODO fast exponentiation in log(k)
     poly_coeff_t r = 1;
@@ -328,6 +352,11 @@ Poly PolyAt(const Poly *p, poly_coeff_t x){
 
 //debugging functions
 #include <stdio.h>
+/**
+ * Funkcja do testowania. Wypisuje wielomian w postaci czytelnej dla użytkownika. Dla dużych wielomianów nie musi wypisać całości.
+ * @param[in] p : wielomian
+ * @param[in] b : indeks zmiennej po której jest ten wielomian (domyślnie 0)
+ */
 void PolyPrint(const Poly* p, int var){
     if(var >= 11){
         printf("[...]");
