@@ -23,13 +23,16 @@ typedef struct Mono Mono;
 
 /**
  * Struktura przechowująca wielomian
- * TODO
+ * Zawiera posortowaną rosnąco tablicę jednomianów o różnych wykładnikach
+ * Reprezentowany wielomian jest sumą tych jednomianów
+ * Jeśli tablica jest pusta (length == 0), to wielomian jest wielomianem stałym i jego postać jest określona przez współczynnik coeff
+ * Coeff i monos są w unii, gdyż jednocześnie tylko jedna z tych dwóch zmiennych jest w użyciu (zależnie od tego czy length jest zerem czy nie), więc można oszczędzić pamięć
  */
 typedef struct Poly
 {
     union{
         poly_coeff_t coeff;///< współczynnik (jeśli length == 0)
-        Mono* monos;///< lista jednomianów, których sumą jest ten wielomian, wykładniki są parami różne
+        Mono* monos;///< tablica jednomianów
     };
     unsigned int length;///< ilość jednomianów (lub 0 gdy wielomian stały)
 } Poly;
@@ -44,7 +47,6 @@ typedef struct Mono
 {
     Poly p; ///< współczynnik
     poly_exp_t exp; ///< wykładnik
-    /* TODO */
 } Mono;
 
 /**

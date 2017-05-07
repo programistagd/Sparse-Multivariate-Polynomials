@@ -212,7 +212,13 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
     return p;
 }
 
-Poly MonoMul(const Mono* m, const Poly* p){
+/**
+ * Mnoży pojedynczy jednomian przez wielomian (funkcja pomocnicza dla mnożenia)
+ * @param[in] m : jednomian
+ * @param[in] p : wielomian
+ * @return `m * p`
+ */
+static Poly MonoMul(const Mono* m, const Poly* p){
     if(PolyIsCoeff(p)){//jeśli p jest współczynnikiem, mnożymy wnętrze jednomianu przez niego
         Mono mc;
         mc.p = PolyMul(&m->p, p);
@@ -319,8 +325,8 @@ bool PolyIsEq(const Poly *p, const Poly *q){
 /**
  * Podnosi x do potęgi k
  * @param[in] x : podstawa potęgowania
- * @param[in] b : wykładnik
- * @return x^k
+ * @param[in] k : wykładnik
+ * @return `x ^ k`
  */
 static poly_coeff_t Exp(poly_coeff_t x, poly_exp_t k){
     //TODO fast exponentiation in log(k)
@@ -362,7 +368,7 @@ Poly PolyAt(const Poly *p, poly_coeff_t x){
 /**
  * Funkcja do testowania. Wypisuje wielomian w postaci czytelnej dla użytkownika. Dla dużych wielomianów nie musi wypisać całości.
  * @param[in] p : wielomian
- * @param[in] b : indeks zmiennej po której jest ten wielomian (domyślnie 0)
+ * @param[in] var : indeks zmiennej po której jest ten wielomian (domyślnie 0)
  */
 void PolyPrint(const Poly* p, int var){
     if(var >= 11){
