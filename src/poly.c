@@ -1,3 +1,10 @@
+/** @file
+   Implementacja interfejsu klasy wielomianów
+
+   @author Jakub Pawlewicz <pan@mimuw.edu.pl>, Radosław Waśko <rw386491@students.mimuw.edu.pl>
+   @copyright Uniwersytet Warszawski
+   @date 2017-04-24, 2017-05-10
+*/
 #include "poly.h"
 
 #include <stdlib.h>
