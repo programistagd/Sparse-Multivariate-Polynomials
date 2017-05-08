@@ -135,6 +135,11 @@ Poly PolyAdd(const Poly *p, const Poly *q){
         return c;
     }
 
+    if(r.length == 1 && PolyIsZero(&r.monos[0].p)){
+        free(r.monos);
+        return PolyZero();
+    }
+
     r.monos = try_shrink_array(r.monos, r.length);
 
     return r;
@@ -163,21 +168,47 @@ static void swap_monos(Mono* a, Mono* b){
     *b = c;
 }
 
+Poly PolyFromMono(Mono* m){
+    Poly p;
+    p.monos = malloc(sizeof(Mono));
+    p.monos[0] = *m;
+    p.length = 1;
+    return p;
+}
+
+Poly PolySumTakeover(Poly* a, Poly* b){
+    if(PolyIsZero(a)) return *b;
+    if(PolyIsZero(b)) return *a;
+    Poly sum = PolyAdd(a, b);
+    PolyDestroy(a);
+    PolyDestroy(b);
+    return sum;
+}
+
 Poly PolyAddMonos(unsigned count, const Mono monos[]){
+    /*//Testowa implementacja kwadratowa
+    Poly p = PolyZero();
+    for(unsigned int i = 0; i < count; ++i){
+        Poly b = PolyFromMono((Mono*)&monos[i]);
+        p = PolySumTakeover(&p, &b);
+    }
+    return p;*/
     if(count == 0) return PolyZero();
     Poly p;
     p.monos = malloc(count * sizeof(Mono));
-    memcpy(p.monos, monos, count * sizeof(Mono));
+    /*T*///memcpy(p.monos, monos, count * sizeof(Mono));
     //sortujemy jednomiany po niemalejącym wykładniku
-    qsort((void*) p.monos, count, sizeof(Mono), compare_monos);
+    /*T*///qsort((void*) p.monos, count, sizeof(Mono), compare_monos);
+    qsort((void*) monos, count, sizeof(Mono), compare_monos);
     p.length = 0;
     for(unsigned int i = 0; i < count; ++i){
         if(p.length > 0){
             Mono* prev = &p.monos[p.length - 1];
+            Mono* m = &monos[i];
             if(prev->exp == monos[i].exp){
-                Poly sum = PolyAdd(&prev->p, &p.monos[i].p);
+                Poly sum = PolyAdd(&prev->p, &m->p);
                 PolyDestroy(&prev->p);//stary współczynnik
-                MonoDestroy(&p.monos[i]);//dodany (zjedzony) jednomian
+                MonoDestroy(m);//dodany (zjedzony) jednomian
                 prev->p = sum;
                 if(PolyIsZero(&prev->p)){
                     MonoDestroy(prev);
@@ -185,13 +216,13 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
                 }
             }
             else{
-                //p.monos[p.length++] = monos[i];
-                swap_monos(&p.monos[p.length++], &p.monos[i]);
+                p.monos[p.length++] = monos[i];
+                /*T*///swap_monos(&p.monos[p.length++], &p.monos[i]);
             }
         }
         else{
-            //p.monos[p.length++] = monos[i];
-            swap_monos(&p.monos[p.length++], &p.monos[i]);//wielomian jest pusty, więc wrzucamy pierwszy jednomian
+            p.monos[p.length++] = monos[i];
+            /*T*///swap_monos(&p.monos[p.length++], &p.monos[i]);//wielomian jest pusty, więc wrzucamy pierwszy jednomian
         }
     }
 
@@ -223,14 +254,14 @@ static Poly MonoMul(const Mono* m, const Poly* p){
         Mono mc;
         mc.p = PolyMul(&m->p, p);
         mc.exp = m->exp;
-        Poly r = PolyAddMonos(1, &mc);
+        Poly r = PolyFromMono(&mc);//PolyAddMonos(1, &mc);
         return r;
     }
     
     //jeśli p jest sumą jednomianów, mnożymy każdy z nich oddzielnie i łączymy w wielomian
     Poly r;
     r.length = p->length;
-    r.monos = malloc(sizeof(Mono) * r.length);/////LEAK
+    r.monos = malloc(sizeof(Mono) * r.length);
 
     for(unsigned int i = 0; i < r.length; ++i){
         //r[i] = p[i] * m
@@ -311,6 +342,11 @@ poly_exp_t PolyDeg(const Poly *p){
 }
 
 bool PolyIsEq(const Poly *p, const Poly *q){
+    /*Poly diff = PolySub(p, q);
+    bool eq = PolyIsZero(&diff);
+    PolyDestroy(&diff);
+    return eq;*/
+    
     if(p->length != q->length) return false;
     if(p->length == 0) return p->coeff == q->coeff;
     
@@ -392,9 +428,9 @@ void PolyPrint(const Poly* p, int var){
             }
             PolyPrint(&p->monos[i].p, var+1);
             
-            if(p->monos[i].exp >= 1 ){
+            if(p->monos[i].exp >= 1 || true){//for testing FIXME
                 printf("%c", chars[var]);
-                if(p->monos[i].exp > 1 ){
+                if(p->monos[i].exp > 1 || true){
                     printf("^%d",p->monos[i].exp);
                 }
             }
