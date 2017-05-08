@@ -275,7 +275,7 @@ static Poly MonoMul(const Mono* m, const Poly* p){
     //jeśli p jest sumą jednomianów, mnożymy każdy z nich oddzielnie i łączymy w wielomian
     Poly r;
     r.length = 0;
-    r.monos = malloc(sizeof(Mono) * r.length);
+    r.monos = malloc(sizeof(Mono) * p->length);
 
     for(unsigned int i = 0; i < p->length; ++i){
         //r[i] = p[i] * m
