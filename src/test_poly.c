@@ -235,6 +235,11 @@ int main(int argc, char **argv)
         res += dec(OverflowTest(), "Overflow");
         printf("%d of 20 tests passed\n", res);
     }
+    else if(strcmp(argv[1], "failing") == 0)
+    {
+        dec(SimpleAddTest(), "SimpleAdd");
+        dec(OverflowTest(), "Overflow");
+    }
     else
     {
         PrintHelp(argv[0]);
@@ -1391,6 +1396,24 @@ static inline bool TestOpC(Poly a, Poly b, Poly res,
 {
     Poly c = op(&a, &b);
     bool is_eq = PolyIsEq(&c, &res);
+    if(!is_eq){
+        char name = '?';
+        if(op == PolyAdd){
+            name = '+';
+        }
+        else if(op == PolyMul){
+            name = '*';
+        }
+        else if(op == PolySub){
+            name = '-';
+        }
+        printf("a = "); PolyPrint(&a, 0);
+        printf("b = "); PolyPrint(&b, 0);
+        printf("a %c b = \n", name);
+        printf("result = "); PolyPrint(&c, 0);
+        printf("expect = "); PolyPrint(&res, 0);
+        printf("\n");
+    }
     PolyDestroy(&a);
     PolyDestroy(&b);
     PolyDestroy(&c);

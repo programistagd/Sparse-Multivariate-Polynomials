@@ -106,26 +106,36 @@ Poly PolyAdd(const Poly *p, const Poly *q){
             qi++;
         }
         else if(pm->exp < qm->exp){//przerzucamy mniejszy współczynnik (większy czeka na potencjalną parę)
-            r.monos[r.length++] = MonoClone(pm);
+            if(!PolyIsZero(&pm->p)){//jeśli ten współczynnik coś wnosi, kopiujemy
+                r.monos[r.length++] = MonoClone(pm);
+            }
             pi++;
         }
         else /*if(pm->exp > qm->exp)*/{
-            r.monos[r.length++] = MonoClone(qm);
+            if(!PolyIsZero(&pm->p)){
+                r.monos[r.length++] = MonoClone(qm);
+            }
             qi++;
         }
     }
 
     //przerzucamy resztę
     while(pi < myp->length){
-        r.monos[r.length++] = MonoClone(&myp->monos[pi++]);
+        if(!PolyIsZero(&myp->monos[pi].p)){
+            r.monos[r.length++] = MonoClone(&myp->monos[pi]);
+        }
+        pi++;
     }
     while(qi < myq->length){
-        r.monos[r.length++] = MonoClone(&myq->monos[qi++]);
+        if(!PolyIsZero(&myq->monos[qi].p)){
+            r.monos[r.length++] = MonoClone(&myq->monos[qi]);
+        }
+        qi++;
     }
 
     //sprawdzamy uproszczenia
     if(r.length == 0){//jeśli wszystko się wyzerowało -> wielomian zerowy
-        PolyDestroy(&r);//de facto free(r.monos)
+        free(r.monos);
         return PolyZero();
     }
 
@@ -136,7 +146,7 @@ Poly PolyAdd(const Poly *p, const Poly *q){
     }
 
     if(r.length == 1 && PolyIsZero(&r.monos[0].p)){
-        free(r.monos);
+        PolyDestroy(&r);
         return PolyZero();
     }
 
@@ -254,20 +264,33 @@ static Poly MonoMul(const Mono* m, const Poly* p){
         Mono mc;
         mc.p = PolyMul(&m->p, p);
         mc.exp = m->exp;
+        if(PolyIsZero(&mc.p)){
+            MonoDestroy(&mc);
+            return PolyZero();
+        }
         Poly r = PolyFromMono(&mc);//PolyAddMonos(1, &mc);
         return r;
     }
     
     //jeśli p jest sumą jednomianów, mnożymy każdy z nich oddzielnie i łączymy w wielomian
     Poly r;
-    r.length = p->length;
+    r.length = 0;
     r.monos = malloc(sizeof(Mono) * r.length);
 
-    for(unsigned int i = 0; i < r.length; ++i){
+    for(unsigned int i = 0; i < p->length; ++i){
         //r[i] = p[i] * m
-        r.monos[i].exp = m->exp + p->monos[i].exp;//dodajemy wykładniki
-        r.monos[i].p = PolyMul(&m->p, &p->monos[i].p);//mnożymy współczynniki (potencjalnie wielomiany kolejnej zmiennej)
+        Poly mul = PolyMul(&m->p, &p->monos[i].p);//mnożymy współczynniki (potencjalnie wielomiany kolejnej zmiennej)
+        if(!PolyIsZero(&mul)){
+            r.monos[r.length].exp = m->exp + p->monos[i].exp;//dodajemy wykładniki
+            r.monos[r.length].p = mul;
+            r.length++;
+        }
+        else{
+            PolyDestroy(&mul);
+        }
     }
+
+    r.monos = try_shrink_array(r.monos, r.length);
 
     return r;
 }
