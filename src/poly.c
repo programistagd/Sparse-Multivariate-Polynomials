@@ -167,54 +167,18 @@ static int compare_monos(const void* a, const void* b){
     return ma->exp - mb->exp;
 }
 
-/**
- * Zamienia miejscami dwa zadane jednomiany (pierwszy staje się drugim a drugi pierwszym)
- * @param[in] a : wskaźnik na pierwszy jednomian
- * @param[in] b : wskaźnik na drugi jednomian
- */
-static void swap_monos(Mono* a, Mono* b){
-    Mono c = *a;
-    *a = *b;
-    *b = c;
-}
-
-Poly PolyFromMono(Mono* m){
-    Poly p;
-    p.monos = malloc(sizeof(Mono));
-    p.monos[0] = *m;
-    p.length = 1;
-    return p;
-}
-
-Poly PolySumTakeover(Poly* a, Poly* b){
-    if(PolyIsZero(a)) return *b;
-    if(PolyIsZero(b)) return *a;
-    Poly sum = PolyAdd(a, b);
-    PolyDestroy(a);
-    PolyDestroy(b);
-    return sum;
-}
-
 Poly PolyAddMonos(unsigned count, const Mono monos[]){
-    /*//Testowa implementacja kwadratowa
-    Poly p = PolyZero();
-    for(unsigned int i = 0; i < count; ++i){
-        Poly b = PolyFromMono((Mono*)&monos[i]);
-        p = PolySumTakeover(&p, &b);
-    }
-    return p;*/
     if(count == 0) return PolyZero();
     Poly p;
     p.monos = malloc(count * sizeof(Mono));
-    /*T*///memcpy(p.monos, monos, count * sizeof(Mono));
+
     //sortujemy jednomiany po niemalejącym wykładniku
-    /*T*///qsort((void*) p.monos, count, sizeof(Mono), compare_monos);
     qsort((void*) monos, count, sizeof(Mono), compare_monos);
     p.length = 0;
     for(unsigned int i = 0; i < count; ++i){
         if(p.length > 0){
             Mono* prev = &p.monos[p.length - 1];
-            Mono* m = &monos[i];
+            Mono* m = (Mono*)&monos[i];
             if(prev->exp == monos[i].exp){
                 Poly sum = PolyAdd(&prev->p, &m->p);
                 PolyDestroy(&prev->p);//stary współczynnik
@@ -227,12 +191,10 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
             }
             else{
                 p.monos[p.length++] = monos[i];
-                /*T*///swap_monos(&p.monos[p.length++], &p.monos[i]);
             }
         }
         else{
             p.monos[p.length++] = monos[i];
-            /*T*///swap_monos(&p.monos[p.length++], &p.monos[i]);//wielomian jest pusty, więc wrzucamy pierwszy jednomian
         }
     }
 
@@ -254,6 +216,19 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
 }
 
 /**
+ * Tworzy wielomian składający się z pojedynczego jednomianu
+ * @param[in] m : jednomian (zostaje przejęty na własność przez utworzony wielomian)
+ * @return wielomian składający się z `m`
+ */
+static Poly PolyFromMono(Mono* m){
+    Poly p;
+    p.monos = malloc(sizeof(Mono));
+    p.monos[0] = *m;
+    p.length = 1;
+    return p;
+}
+
+/**
  * Mnoży pojedynczy jednomian przez wielomian (funkcja pomocnicza dla mnożenia)
  * @param[in] m : jednomian
  * @param[in] p : wielomian
@@ -268,7 +243,7 @@ static Poly MonoMul(const Mono* m, const Poly* p){
             MonoDestroy(&mc);
             return PolyZero();
         }
-        Poly r = PolyFromMono(&mc);//PolyAddMonos(1, &mc);
+        Poly r = PolyFromMono(&mc);
         return r;
     }
     
@@ -327,7 +302,7 @@ Poly PolyNeg(const Poly *p){
     return PolyMul(p, &neg1);
 }
 
-Poly PolySub(const Poly *p, const Poly *q){//simple implementation, TODO consider optimizing???
+Poly PolySub(const Poly *p, const Poly *q){
     Poly qneg = PolyNeg(q);
     Poly sub = PolyAdd(p, &qneg);
     PolyDestroy(&qneg);
