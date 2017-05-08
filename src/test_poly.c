@@ -95,6 +95,11 @@ void PrintHelp(char *);
 
 void MojeTesty();
 
+bool dec(bool b, const char* name){
+    printf("%s %s\n", name, (b ? "OK" : "failed"));
+    return b;
+}
+
 int main(int argc, char **argv)
 {
     if (argc != 2)
@@ -204,30 +209,30 @@ int main(int argc, char **argv)
     else if (strcmp(argv[1], ALL_TESTS) == 0)
     {
         int res = 0;
-        res += SimpleArithmeticTest();
-        res += LongPolynomialTest();
+        res += dec(SimpleArithmeticTest(), "SimpleArithmetic");
+        res += dec(LongPolynomialTest(), "LongPoly");
         MemoryThiefTest();
-        res += DegreeOpChangeTest();
-        res += DegTest();
-        res += SimpleAtTest2();
-        res += AtTest();
-        res += MulTest();
-        res += MulTest2();
-        res += AddTest1();
-        res += AddTest2();
-        res += SubTest1();
-        res += SubTest2();
-        res += IsEqTest();
-        res += RarePolynomialTest();
-        res += SimpleAddMonosTest();
-        res += SimpleAddTest() &&
-                SimpleMulTest() &&
-                SimpleNegTest() &&
-                SimpleSubTest();//
-        res += SimpleDegByTest() && SimpleDegTest();
-        res += SimpleIsEqTest();
-        res += SimpleAtTest();//
-        res += OverflowTest();
+        res += dec(DegreeOpChangeTest(), "DegOpChange");
+        res += dec(DegTest(), "Deg");
+        res += dec(SimpleAtTest2(), "SimpleAt2");
+        res += dec(AtTest(), "At");
+        res += dec(MulTest(), "Mul");
+        res += dec(MulTest2(), "Mul2");
+        res += dec(AddTest1(), "Add1");
+        res += dec(AddTest2(), "Add2");
+        res += dec(SubTest1(), "Sub");
+        res += dec(SubTest2(), "Sub2");
+        res += dec(IsEqTest(), "IsEq");
+        res += dec(RarePolynomialTest(), "RarePoly");
+        res += dec(SimpleAddMonosTest(), "SimpleAddMonos");
+        res += dec(SimpleAddTest(), "SimpleAdd") &&
+                dec(SimpleMulTest(), "SimpleMul") &&
+                dec(SimpleNegTest(), "SimpleNeg") &&
+                dec(SimpleSubTest(), "SimpleSub");//
+        res += dec(SimpleDegByTest(), "SimpleDegBy") && dec(SimpleDegTest(), "SimpleDeg");
+        res += dec(SimpleIsEqTest(), "SimpleIsEq");
+        res += dec(SimpleAtTest(), "SimpleAt");//
+        res += dec(OverflowTest(), "Overflow");
         printf("%d of 20 tests passed\n", res);
     }
     else
