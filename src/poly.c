@@ -42,7 +42,9 @@ Poly PolyClone(const Poly *p){
  * @param[in] new_len : nowa zadana długość (może być 0, wtedy tablica jest zwalniana)
  * @return nowy wskaźnik na tablicę jednomianów (potencjalnie pomniejszoną lub niezmienioną)
  */
-static Mono* try_shrink_array(Mono* m, unsigned int new_len){
+static inline Mono* try_shrink_array(Mono* m, unsigned int new_len, unsigned int old_len){
+    if(new_len == old_len) return m;
+    
     if(new_len == 0){
         free(m);
         return NULL;
@@ -58,7 +60,9 @@ Poly PolyAdd(const Poly *p, const Poly *q){
     }
 
     Poly r;
-    r.monos = malloc(sizeof(Mono) * (p->length + q->length + 1));
+    unsigned int count = p->length + q->length;
+    if(p->length == 0 || q->length == 0) count+=1;
+    r.monos = malloc(sizeof(Mono) * count);
 
     const Poly* myp = p;
     const Poly* myq = q;
@@ -150,10 +154,11 @@ Poly PolyAdd(const Poly *p, const Poly *q){
         return PolyZero();
     }
 
-    r.monos = try_shrink_array(r.monos, r.length);
+    r.monos = try_shrink_array(r.monos, r.length, count);
 
     return r;
 }
+
 /**
  * Porównuje dwa jednomiany względem ich wykładnika. Używana do posortowania jednomianów w PolyAddMonos
  * @param[in] a : wskaźnik na pierwszy jednomian
@@ -167,13 +172,27 @@ static int compare_monos(const void* a, const void* b){
     return ma->exp - mb->exp;
 }
 
+static inline void mysort(Mono* monos, int count){
+    if(count == 1) return;
+    if(count == 2){
+        if(monos[0].exp > monos[1].exp){
+            Mono m = monos[0];
+            monos[0] = monos[1];
+            monos[1] = m;
+        }
+        return;
+    }
+    qsort((void*) monos, count, sizeof(Mono), compare_monos);
+}
+
 Poly PolyAddMonos(unsigned count, const Mono monos[]){
     if(count == 0) return PolyZero();
     Poly p;
     p.monos = malloc(count * sizeof(Mono));
 
     //sortujemy jednomiany po niemalejącym wykładniku
-    qsort((void*) monos, count, sizeof(Mono), compare_monos);
+    mysort((Mono*)monos, count);
+
     p.length = 0;
     for(unsigned int i = 0; i < count; ++i){
         if(p.length > 0){
@@ -210,7 +229,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
     }
 
     //jeśli nie używamy całej tablicy, zmniejsz jej rozmiar do minimum
-    p.monos = try_shrink_array(p.monos, p.length);
+    p.monos = try_shrink_array(p.monos, p.length, count);
 
     return p;
 }
@@ -265,7 +284,7 @@ static Poly MonoMul(const Mono* m, const Poly* p){
         }
     }
 
-    r.monos = try_shrink_array(r.monos, r.length);
+    r.monos = try_shrink_array(r.monos, r.length, p->length);
 
     return r;
 }
