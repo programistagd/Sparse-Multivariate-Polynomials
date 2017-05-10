@@ -185,6 +185,40 @@ static inline void mysort(Mono* monos, int count){
     qsort((void*) monos, count, sizeof(Mono), compare_monos);
 }
 
+Mono AddEqualMonos(Mono* monos, unsigned int count){
+    if(count == 1){
+        return monos[0];
+    }
+    //zakłada że monos[0]...monos[count-1] mają równe wykładniki
+    unsigned int polys = 1;//coef
+    for(unsigned int i = 0; i < count; ++i){
+        polys += monos[i].p.length;
+    }
+    Mono* inside = malloc(sizeof(Mono) * polys);
+    inside[0].p = PolyZero();
+    inside[0].exp = 0;
+    int p = 1;
+    for(unsigned int i = 0; i < count; ++i){
+        if(PolyIsCoeff(&monos[i].p)){
+            inside[0].p.coeff += monos[i].p.coeff;
+        }
+        else{
+            for(unsigned int j = 0; j < monos[i].p.length; ++j){
+                inside[p++] = monos[i].p.monos[j];
+            }
+        }
+    }
+    Mono result;
+    result.exp = monos[0].exp;
+    int shift = 0;
+    if(PolyIsZero(&inside[0].p)){
+        shift = 1;
+    }
+    result.p = PolyAddMonos(polys - shift, inside + shift);
+    free(inside);
+    return result;
+}
+
 Poly PolyAddMonos(unsigned count, const Mono monos[]){
     if(count == 0) return PolyZero();
     Poly p;
@@ -194,7 +228,23 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
     mysort((Mono*)monos, count);
 
     p.length = 0;
-    for(unsigned int i = 0; i < count; ++i){
+    unsigned int start = 0;
+    while(start < count){
+        unsigned int equal_count = 1;
+        
+        while(start + equal_count < count && monos[start].exp == monos[start + equal_count].exp) equal_count++;
+
+        Mono sum = AddEqualMonos((Mono*)&monos[start], equal_count);
+        if(!PolyIsZero(&sum.p)){
+            p.monos[p.length++] = sum;
+        }
+        else{
+            MonoDestroy(&sum);
+        }
+
+        start += equal_count;
+        //////
+        /*
         if(p.length > 0){
             Mono* prev = &p.monos[p.length - 1];
             Mono* m = (Mono*)&monos[i];
@@ -214,7 +264,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
         }
         else{
             p.monos[p.length++] = monos[i];
-        }
+        }*/
     }
 
     if(p.length == 0){//jeśli wszystko się wyzerowało -> wielomian zerowy
