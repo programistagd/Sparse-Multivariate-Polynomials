@@ -367,8 +367,18 @@ Poly PolyMul(const Poly *p, const Poly *q){
 }
 
 Poly PolyNeg(const Poly *p){
-    Poly neg1 = PolyFromCoeff(-1);//TODO more efficient impl.
-    return PolyMul(p, &neg1);
+    if(PolyIsCoeff(p)){
+        return PolyFromCoeff(-p->coeff);
+    }
+
+    Poly r;
+    r.monos = malloc(sizeof(Mono) * p->length);
+    r.length = p->length;
+    for(unsigned int i = 0; i < p->length; ++i){
+        r.monos[i].exp = p->monos[i].exp;
+        r.monos[i].p = PolyNeg(&p->monos[i].p);
+    }
+    return r;
 }
 
 Poly PolySub(const Poly *p, const Poly *q){
