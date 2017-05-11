@@ -567,10 +567,14 @@ bool PolyIsEq(const Poly *p, const Poly *q)
  */
 static poly_coeff_t Exp(poly_coeff_t x, poly_exp_t k)
 {
-    //TODO fast exponentiation in log(k)
     poly_coeff_t r = 1;
-    while (k-- > 0)
-        r *= x;
+    while (k > 0){
+        if(k % 2 == 1){
+            r *= x;
+        }
+        x = x*x;
+        k /= 2;
+    }
     return r;
 }
 
