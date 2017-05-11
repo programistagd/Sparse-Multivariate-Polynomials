@@ -42,7 +42,7 @@ Poly PolyClone(const Poly *p){
  * @param[in] new_len : nowa zadana długość (może być 0, wtedy tablica jest zwalniana)
  * @return nowy wskaźnik na tablicę jednomianów (potencjalnie pomniejszoną lub niezmienioną)
  */
-static inline Mono* try_shrink_array(Mono* m, unsigned int new_len, unsigned int old_len){
+static inline Mono* TryShrinkArray(Mono* m, unsigned int new_len, unsigned int old_len){
     if(new_len == old_len) return m;
     
     if(new_len == 0){
@@ -154,7 +154,7 @@ Poly PolyAdd(const Poly *p, const Poly *q){
         return PolyZero();
     }
 
-    r.monos = try_shrink_array(r.monos, r.length, count);
+    r.monos = TryShrinkArray(r.monos, r.length, count);
 
     return r;
 }
@@ -165,14 +165,14 @@ Poly PolyAdd(const Poly *p, const Poly *q){
  * @param[in] b : wskaźnik na drugi jednomian
  * @return różnica wykładników
  */
-static int compare_monos(const void* a, const void* b){
+static int CompareMonos(const void* a, const void* b){
     const Mono* ma = a;
     const Mono* mb = b;
 
     return ma->exp - mb->exp;
 }
 
-static inline void mysort(Mono* monos, int count){
+static inline void SortMonos(Mono* monos, int count){
     if(count == 1) return;
     if(count == 2){
         if(monos[0].exp > monos[1].exp){
@@ -182,10 +182,10 @@ static inline void mysort(Mono* monos, int count){
         }
         return;
     }
-    qsort((void*) monos, count, sizeof(Mono), compare_monos);
+    qsort((void*) monos, count, sizeof(Mono), CompareMonos);
 }
 
-Mono AddEqualMonos(Mono* monos, unsigned int count){
+Mono AddEqualExpMonos(Mono* monos, unsigned int count){
     if(count == 1){
         return monos[0];
     }
@@ -225,7 +225,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
     p.monos = malloc(count * sizeof(Mono));
 
     //sortujemy jednomiany po niemalejącym wykładniku
-    mysort((Mono*)monos, count);
+    SortMonos((Mono*)monos, count);
 
     p.length = 0;
     unsigned int start = 0;
@@ -234,7 +234,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
         
         while(start + equal_count < count && monos[start].exp == monos[start + equal_count].exp) equal_count++;
 
-        Mono sum = AddEqualMonos((Mono*)&monos[start], equal_count);
+        Mono sum = AddEqualExpMonos((Mono*)&monos[start], equal_count);
         if(!PolyIsZero(&sum.p)){
             p.monos[p.length++] = sum;
         }
@@ -243,28 +243,6 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
         }
 
         start += equal_count;
-        //////
-        /*
-        if(p.length > 0){
-            Mono* prev = &p.monos[p.length - 1];
-            Mono* m = (Mono*)&monos[i];
-            if(prev->exp == monos[i].exp){
-                Poly sum = PolyAdd(&prev->p, &m->p);
-                PolyDestroy(&prev->p);//stary współczynnik
-                MonoDestroy(m);//dodany (zjedzony) jednomian
-                prev->p = sum;
-                if(PolyIsZero(&prev->p)){
-                    MonoDestroy(prev);
-                    p.length--;
-                }
-            }
-            else{
-                p.monos[p.length++] = monos[i];
-            }
-        }
-        else{
-            p.monos[p.length++] = monos[i];
-        }*/
     }
 
     if(p.length == 0){//jeśli wszystko się wyzerowało -> wielomian zerowy
@@ -279,7 +257,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
     }
 
     //jeśli nie używamy całej tablicy, zmniejsz jej rozmiar do minimum
-    p.monos = try_shrink_array(p.monos, p.length, count);
+    p.monos = TryShrinkArray(p.monos, p.length, count);
 
     return p;
 }
@@ -334,7 +312,7 @@ static Poly MonoMul(const Mono* m, const Poly* p){
         }
     }
 
-    r.monos = try_shrink_array(r.monos, r.length, p->length);
+    r.monos = TryShrinkArray(r.monos, r.length, p->length);
 
     return r;
 }
@@ -419,11 +397,6 @@ poly_exp_t PolyDeg(const Poly *p){
 }
 
 bool PolyIsEq(const Poly *p, const Poly *q){
-    /*Poly diff = PolySub(p, q);
-    bool eq = PolyIsZero(&diff);
-    PolyDestroy(&diff);
-    return eq;*/
-    
     if(p->length != q->length) return false;
     if(p->length == 0) return p->coeff == q->coeff;
     
@@ -474,53 +447,4 @@ Poly PolyAt(const Poly *p, poly_coeff_t x){
     }
 
     return r;
-}
-
-//debugging functions
-#include <stdio.h>
-/**
- * Funkcja do testowania. Wypisuje wielomian w postaci czytelnej dla użytkownika. Dla dużych wielomianów nie musi wypisać całości.
- * @param[in] p : wielomian
- * @param[in] var : indeks zmiennej po której jest ten wielomian (domyślnie 0)
- */
-void PolyPrint(const Poly* p, int var){
-    if(var >= 11){
-        printf("[...]");
-        return;
-    }
-
-    const char* chars = "xyzwpqrstuv";
-
-    if(PolyIsCoeff(p)){
-        printf("%ld",p->coeff);
-    }
-    else{
-        if(p->length > 1 && var != 0){
-            printf("(");
-        }
-
-        for(unsigned int i = 0; i < p->length; ++i){
-            if(i > 0){
-                printf(" + ");
-            }
-            PolyPrint(&p->monos[i].p, var+1);
-            
-            if(p->monos[i].exp >= 1 || true){//for testing FIXME
-                printf("%c", chars[var]);
-                if(p->monos[i].exp > 1 || true){
-                    printf("^%d",p->monos[i].exp);
-                }
-            }
-            else{
-                //do nothing, printing coef is handled by PolyPrint run reursively
-            }
-        }
-
-        if(p->length > 1 && var != 0){
-            printf(")");
-        }
-    }
-    if(var == 0){
-        printf("\n");
-    }
 }
