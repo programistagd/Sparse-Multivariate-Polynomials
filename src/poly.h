@@ -30,11 +30,11 @@ typedef struct Mono Mono;
  */
 typedef struct Poly
 {
-    union{
-        poly_coeff_t coeff;///< współczynnik (jeśli length == 0)
-        Mono* monos;///< tablica jednomianów
+    union {
+        poly_coeff_t coeff; ///< współczynnik (jeśli length == 0)
+        Mono *monos;        ///< tablica jednomianów
     };
-    unsigned int length;///< ilość jednomianów (lub 0 gdy wielomian stały)
+    unsigned int length;    ///< ilość jednomianów (lub 0 gdy wielomian stały)
 } Poly;
 
 /**
@@ -45,7 +45,7 @@ typedef struct Poly
   */
 typedef struct Mono
 {
-    Poly p; ///< współczynnik
+    Poly p;         ///< współczynnik
     poly_exp_t exp; ///< wykładnik
 } Mono;
 
@@ -80,7 +80,7 @@ static inline Poly PolyZero()
  */
 static inline Mono MonoFromPoly(const Poly *p, poly_exp_t e)
 {
-    return (Mono) {.p = *p, .exp = e};
+    return (Mono){.p = *p, .exp = e};
 }
 
 /**
