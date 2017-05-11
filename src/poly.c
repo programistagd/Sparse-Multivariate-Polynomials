@@ -582,7 +582,7 @@ Poly PolyAt(const Poly *p, poly_coeff_t x)
 {
     if (PolyIsCoeff(p))
     {
-        return PolyClone(p); //wielomain będący tylko współczynnikiem pozostaje niezmieniony (wprawdzie współczynnik nie używa dynamicznej pamięci ale na wszelki wypadek zwracamy kopię, gdyby coś się zmieniło)
+        return PolyClone(p); //wielomian będący tylko współczynnikiem pozostaje niezmieniony (wprawdzie współczynnik nie używa dynamicznej pamięci ale na wszelki wypadek zwracamy kopię, gdyby coś się zmieniło)
     }
 
     poly_exp_t prevk = p->monos[0].exp;
