@@ -18,6 +18,7 @@ void PolyDestroy(Poly *p)
         {
             MonoDestroy(&p->monos[i]);
         }
+
         free(p->monos);
         p->monos = NULL; //na wypadek gdyby ktoś próbował destroyować ten wielomian po raz drugi, wyzeruj dane
         p->length = 0;
@@ -55,16 +56,21 @@ Poly PolyClone(const Poly *p)
 static inline Mono *TryShrinkArray(Mono *m, unsigned int new_len, unsigned int old_len)
 {
     if (new_len == old_len)
+    {
         return m;
+    }
 
     if (new_len == 0)
     {
         free(m);
         return NULL;
     }
+
     Mono *newm = realloc(m, sizeof(Mono) * new_len);
     if (newm == NULL)
+    {
         return m;
+    }
     return newm;
 }
 
@@ -76,9 +82,12 @@ Poly PolyAdd(const Poly *p, const Poly *q)
     }
 
     Poly r;
-    unsigned int count = p->length + q->length;
+    unsigned int count = p->length + q->length; //rezerwujemy taki bufor, żeby wynik napewno się zmieścił, potem ewentualnie zmniejszymy
     if (p->length == 0 || q->length == 0)
+    {
         count += 1;
+    }
+
     r.monos = malloc(sizeof(Mono) * count);
     assert(r.monos != NULL);
 
@@ -216,9 +225,12 @@ static int CompareMonos(const void *a, const void *b)
 static inline void SortMonos(Mono *monos, int count)
 {
     if (count == 1)
+    { //tylko jeden element, nie ma co sortować
         return;
+    }
+
     if (count == 2)
-    {
+    { //dwa elementy, sprawdzamy czy dobra kolejność, jak nie to zamieniamy
         if (monos[0].exp > monos[1].exp)
         {
             Mono m = monos[0];
@@ -227,6 +239,8 @@ static inline void SortMonos(Mono *monos, int count)
         }
         return;
     }
+
+    //dla większej liczby odpalamy funkcję sortującą z stdlib
     qsort((void *)monos, count, sizeof(Mono), CompareMonos);
 }
 
@@ -242,18 +256,21 @@ Mono AddEqualExpMonos(Mono *monos, unsigned int count)
     {
         return monos[0];
     }
+
     //zakłada że monos[0]...monos[count-1] mają równe wykładniki
     unsigned int polys = 1; //coef
     for (unsigned int i = 0; i < count; ++i)
     {
         polys += monos[i].p.length;
     }
+
     Mono *inside = malloc(sizeof(Mono) * polys);
     assert(inside != NULL);
 
     inside[0].p = PolyZero();
     inside[0].exp = 0;
-    int p = 1;
+    int nextpoly = 1;
+
     for (unsigned int i = 0; i < count; ++i)
     {
         if (PolyIsCoeff(&monos[i].p))
@@ -264,17 +281,20 @@ Mono AddEqualExpMonos(Mono *monos, unsigned int count)
         {
             for (unsigned int j = 0; j < monos[i].p.length; ++j)
             {
-                inside[p++] = monos[i].p.monos[j];
+                inside[nextpoly++] = monos[i].p.monos[j];
             }
         }
     }
+
     Mono result;
     result.exp = monos[0].exp;
+
     int shift = 0;
     if (PolyIsZero(&inside[0].p))
     {
         shift = 1;
     }
+
     result.p = PolyAddMonos(polys - shift, inside + shift);
     free(inside);
     return result;
@@ -283,7 +303,10 @@ Mono AddEqualExpMonos(Mono *monos, unsigned int count)
 Poly PolyAddMonos(unsigned count, const Mono monos[])
 {
     if (count == 0)
+    {
         return PolyZero();
+    }
+
     Poly p;
     p.monos = malloc(count * sizeof(Mono));
     assert(p.monos != NULL);
@@ -342,8 +365,10 @@ static Poly PolyFromMono(Mono *m)
     Poly p;
     p.monos = malloc(sizeof(Mono));
     assert(p.monos != NULL);
+
     p.monos[0] = *m;
     p.length = 1;
+
     return p;
 }
 
@@ -360,11 +385,13 @@ static Poly MonoMul(const Mono *m, const Poly *p)
         Mono mc;
         mc.p = PolyMul(&m->p, p);
         mc.exp = m->exp;
+
         if (PolyIsZero(&mc.p))
         {
             MonoDestroy(&mc);
             return PolyZero();
         }
+
         Poly r = PolyFromMono(&mc);
         return r;
     }
@@ -444,6 +471,7 @@ Poly PolyNeg(const Poly *p)
         r.monos[i].exp = p->monos[i].exp;
         r.monos[i].p = PolyNeg(&p->monos[i].p);
     }
+
     return r;
 }
 
@@ -458,57 +486,74 @@ Poly PolySub(const Poly *p, const Poly *q)
 poly_exp_t PolyDegBy(const Poly *p, unsigned var_idx)
 {
     if (PolyIsZero(p))
+    {
         return -1;
+    }
+
     if (PolyIsCoeff(p))
+    {
         return 0;
+    }
+
     if (var_idx == 0)
     {
-        return p->monos[p->length - 1].exp;
+        return p->monos[p->length - 1].exp; //wykładniki posortowane rosnąco, więc największy jest w ostatnim jednomianie
     }
     else
     {
-        int m = 0;
+        int maxdeg = 0;
 
         for (unsigned int i = 0; i < p->length; ++i)
         {
             int deg = PolyDegBy(&p->monos[i].p, var_idx - 1);
-            if (deg > m)
-                m = deg;
+            if (deg > maxdeg)
+            {
+                maxdeg = deg;
+            }
         }
 
-        return m;
+        return maxdeg;
     }
 }
 
 poly_exp_t PolyDeg(const Poly *p)
 {
     if (PolyIsZero(p))
-        return -1;
-
-    int m = 0;
-    for (unsigned int i = 0; i < p->length; ++i)
     {
-        int d = p->monos[i].exp + PolyDeg(&p->monos[i].p);
-        if (d > m)
-            m = d;
+        return -1;
     }
 
-    return m;
+    int maxdeg = 0;
+    for (unsigned int i = 0; i < p->length; ++i)
+    {
+        int monodeg = p->monos[i].exp + PolyDeg(&p->monos[i].p);
+        if (monodeg > maxdeg)
+        {
+            maxdeg = monodeg;
+        }
+    }
+
+    return maxdeg;
 }
 
 bool PolyIsEq(const Poly *p, const Poly *q)
 {
     if (p->length != q->length)
+    {
         return false;
+    }
+
     if (p->length == 0)
+    {
         return p->coeff == q->coeff;
+    }
 
     for (unsigned int i = 0; i < p->length; ++i)
     {
-        if (p->monos[i].exp != q->monos[i].exp)
+        if (p->monos[i].exp != q->monos[i].exp || !PolyIsEq(&p->monos[i].p, &q->monos[i].p))
+        {
             return false;
-        if (!PolyIsEq(&p->monos[i].p, &q->monos[i].p))
-            return false;
+        }
     }
 
     return true;
@@ -532,7 +577,9 @@ static poly_coeff_t Exp(poly_coeff_t x, poly_exp_t k)
 Poly PolyAt(const Poly *p, poly_coeff_t x)
 {
     if (PolyIsCoeff(p))
+    {
         return PolyClone(p); //wielomain będący tylko współczynnikiem pozostaje niezmieniony (wprawdzie współczynnik nie używa dynamicznej pamięci ale na wszelki wypadek zwracamy kopię, gdyby coś się zmieniło)
+    }
 
     poly_exp_t prevk = p->monos[0].exp;
     poly_coeff_t xk = Exp(x, prevk);
