@@ -50,7 +50,7 @@ Poly PolyClone(const Poly *p)
  * Próbuje zmniejszyć zaalokowaną tablicę jednomianów do nowej wielkości
  * @param[in] m : wskaźnik do poczatku tablicy jednomianów
  * @param[in] new_len : nowa zadana długość (może być 0, wtedy tablica jest zwalniana)
- * @param[in] new_len : poprzednia długość (głównie w celach debugowania)
+ * @param[in] old_len : poprzednia długość (głównie w celach debugowania)
  * @return nowy wskaźnik na tablicę jednomianów (potencjalnie pomniejszoną lub niezmienioną)
  */
 static inline Mono *TryShrinkArray(Mono *m, unsigned int new_len, unsigned int old_len)
