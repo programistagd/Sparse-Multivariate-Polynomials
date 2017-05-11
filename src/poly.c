@@ -8,7 +8,7 @@
 #include "poly.h"
 
 #include <stdlib.h>
-#include <string.h> //memcpy
+#include <assert.h>
 
 void PolyDestroy(Poly *p){
     if(p->length != 0){
@@ -29,6 +29,8 @@ Poly PolyClone(const Poly *p){
     }
     else{
         n.monos = malloc(sizeof(Mono) * n.length);
+        assert(n.monos != NULL);
+
         for(unsigned int i = 0; i < n.length; ++i){
             n.monos[i] = MonoClone(&p->monos[i]);
         }
@@ -40,6 +42,7 @@ Poly PolyClone(const Poly *p){
  * Próbuje zmniejszyć zaalokowaną tablicę jednomianów do nowej wielkości
  * @param[in] m : wskaźnik do poczatku tablicy jednomianów
  * @param[in] new_len : nowa zadana długość (może być 0, wtedy tablica jest zwalniana)
+ * @param[in] new_len : poprzednia długość (głównie w celach debugowania)
  * @return nowy wskaźnik na tablicę jednomianów (potencjalnie pomniejszoną lub niezmienioną)
  */
 static inline Mono* TryShrinkArray(Mono* m, unsigned int new_len, unsigned int old_len){
@@ -63,6 +66,7 @@ Poly PolyAdd(const Poly *p, const Poly *q){
     unsigned int count = p->length + q->length;
     if(p->length == 0 || q->length == 0) count+=1;
     r.monos = malloc(sizeof(Mono) * count);
+    assert(r.monos != NULL);
 
     const Poly* myp = p;
     const Poly* myq = q;
@@ -172,6 +176,11 @@ static int CompareMonos(const void* a, const void* b){
     return ma->exp - mb->exp;
 }
 
+/**
+ * Sortuje w miejscu tablicę jednomianów w kolejności niemalejących wykładników
+ * @param[in, out] monos : wskaźnik na tablicę
+ * @param[in] count : liczba elementów w tablicy
+ */
 static inline void SortMonos(Mono* monos, int count){
     if(count == 1) return;
     if(count == 2){
@@ -185,6 +194,12 @@ static inline void SortMonos(Mono* monos, int count){
     qsort((void*) monos, count, sizeof(Mono), CompareMonos);
 }
 
+/**
+ * Dodaje do siebie wiele jednomianów o równych wykładnikach
+ * @param[in] monos : wskaźnik na tablicę
+ * @param[in] count : liczba elementów w tablicy
+ * @return jednomian, którego współczynnik jest sumą współczynników argumentów
+ */
 Mono AddEqualExpMonos(Mono* monos, unsigned int count){
     if(count == 1){
         return monos[0];
@@ -195,6 +210,8 @@ Mono AddEqualExpMonos(Mono* monos, unsigned int count){
         polys += monos[i].p.length;
     }
     Mono* inside = malloc(sizeof(Mono) * polys);
+    assert(inside != NULL);
+
     inside[0].p = PolyZero();
     inside[0].exp = 0;
     int p = 1;
@@ -223,6 +240,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
     if(count == 0) return PolyZero();
     Poly p;
     p.monos = malloc(count * sizeof(Mono));
+    assert(p.monos != NULL);
 
     //sortujemy jednomiany po niemalejącym wykładniku
     SortMonos((Mono*)monos, count);
@@ -270,6 +288,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]){
 static Poly PolyFromMono(Mono* m){
     Poly p;
     p.monos = malloc(sizeof(Mono));
+    assert(p.monos != NULL);
     p.monos[0] = *m;
     p.length = 1;
     return p;
@@ -298,6 +317,7 @@ static Poly MonoMul(const Mono* m, const Poly* p){
     Poly r;
     r.length = 0;
     r.monos = malloc(sizeof(Mono) * p->length);
+    assert(r.monos != NULL);
 
     for(unsigned int i = 0; i < p->length; ++i){
         //r[i] = p[i] * m
@@ -351,6 +371,8 @@ Poly PolyNeg(const Poly *p){
 
     Poly r;
     r.monos = malloc(sizeof(Mono) * p->length);
+    assert(r.monos != NULL);
+
     r.length = p->length;
     for(unsigned int i = 0; i < p->length; ++i){
         r.monos[i].exp = p->monos[i].exp;
