@@ -283,6 +283,7 @@ Mono AddEqualExpMonos(Mono *monos, unsigned int count)
             {
                 inside[nextpoly++] = monos[i].p.monos[j];
             }
+            free(monos[i].p.monos);
         }
     }
 
