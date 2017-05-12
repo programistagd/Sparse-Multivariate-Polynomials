@@ -246,11 +246,11 @@ static inline void SortMonos(Mono *monos, int count)
 
 /**
  * Dodaje do siebie wiele jednomianów o równych wykładnikach
- * @param[in] monos : wskaźnik na tablicę
+ * @param[in] monos : wskaźnik na tablicę, przejmuje zawarte jednomiany na własność (będą należały do wyniku lub zostaną zniszczone)
  * @param[in] count : liczba elementów w tablicy
  * @return jednomian, którego współczynnik jest sumą współczynników argumentów
  */
-Mono AddEqualExpMonos(Mono *monos, unsigned int count)
+/*Mono AddEqualExpMonos(Mono *monos, unsigned int count)
 {
     if (count == 1)
     {
@@ -299,7 +299,7 @@ Mono AddEqualExpMonos(Mono *monos, unsigned int count)
     result.p = PolyAddMonos(polys - shift, inside + shift);
     free(inside);
     return result;
-}
+}*/
 
 Poly PolyAddMonos(unsigned count, const Mono monos[])
 {
@@ -316,13 +316,16 @@ Poly PolyAddMonos(unsigned count, const Mono monos[])
     SortMonos((Mono *)monos, count);
 
     p.length = 0;
+    /*
     unsigned int start = 0;
     while (start < count)
     {
         unsigned int equal_count = 1;
 
         while (start + equal_count < count && monos[start].exp == monos[start + equal_count].exp)
+        {
             equal_count++;
+        }
 
         Mono sum = AddEqualExpMonos((Mono *)&monos[start], equal_count);
         if (!PolyIsZero(&sum.p))
@@ -335,7 +338,30 @@ Poly PolyAddMonos(unsigned count, const Mono monos[])
         }
 
         start += equal_count;
+    }*/
+    for(unsigned int i = 0; i < count; ++i){
+        if(p.length > 0){
+            Mono* prev = &p.monos[p.length - 1];
+            Mono* m = (Mono*)&monos[i];
+            if(prev->exp == monos[i].exp){
+                Poly sum = PolyAdd(&prev->p, &m->p);
+                PolyDestroy(&prev->p);//stary współczynnik
+                MonoDestroy(m);//dodany (zjedzony) jednomian
+                prev->p = sum;
+                if(PolyIsZero(&prev->p)){
+                    MonoDestroy(prev);
+                    p.length--;
+                }
+            }
+            else{
+                p.monos[p.length++] = monos[i];
+            }
+        }
+        else{
+            p.monos[p.length++] = monos[i];
+        }
     }
+
 
     if (p.length == 0)
     { //jeśli wszystko się wyzerowało -> wielomian zerowy
@@ -569,11 +595,13 @@ bool PolyIsEq(const Poly *p, const Poly *q)
 static poly_coeff_t Exp(poly_coeff_t x, poly_exp_t k)
 {
     poly_coeff_t r = 1;
-    while (k > 0){
-        if(k % 2 == 1){
+    while (k > 0)
+    {
+        if (k % 2 == 1)
+        {
             r *= x;
         }
-        x = x*x;
+        x = x * x;
         k /= 2;
     }
     return r;
