@@ -339,7 +339,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[])
 
     if (p.length == 0)
     { //jeśli wszystko się wyzerowało -> wielomian zerowy
-        PolyDestroy(&p);
+        free(p.monos);
         return PolyZero();
     }
 
