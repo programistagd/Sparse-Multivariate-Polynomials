@@ -10,6 +10,9 @@
 #include "stack_calc.h"
 
 int main(){
-
+    Initialize();
+    while(HasMoreLines()){
+        ParseLine();
+    }
     return 0;
 }

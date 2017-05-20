@@ -11,4 +11,12 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
 
+#include <stdbool.h>
+
+void Initialize();
+
+bool HasMoreLines();
+
+void ParseLine();
+
 #endif
