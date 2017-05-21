@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <assert.h>
 #include <string.h>
 
@@ -17,7 +18,8 @@
 
 static bool initialized = false;
 static char next = ' ';
-static int lineno = 1;
+static int lineno;
+static int columnno;
 
 typedef struct String{
     char* str;
@@ -74,10 +76,12 @@ bool EndOfStream(){
 void PopChar(){
     if(next == '\n'){
         lineno += 1;
+        columnno = 0;
     }
 
     if(!EndOfStream()){
         next = getchar();
+        columnno += 1;
     }
 }
 
@@ -96,6 +100,7 @@ void Initialize(){
     assert(!initialized);
     initialized = true;
     lineno = 0;
+    columnno = 0;
     next = getchar();
 
     //TODO prepare stack calc
@@ -117,10 +122,6 @@ void ConsumeWhitespace(){
     while(IsWhiteSpace(PeekChar())){
         GetChar();
     }
-}
-
-poly_coeff_t ReadCoeff(){
-
 }
 
 void PrintError(const char* text){
@@ -170,7 +171,7 @@ void ParseCommand(){
         //TODO
     }
     else if(StringCmp(&s, "AT")){
-        poly_coeff_t x = ReadCoeff();
+        //poly_coeff_t x = ReadCoeff();//TODO!
         ConsumeWhitespace();
         //TODO
     }
@@ -185,8 +186,80 @@ void ParseCommand(){
     }
 }
 
+static bool polyparsingerror;
+
+void PolyParsingError(){
+    polyparsingerror = true;
+    printf("ERROR %d %d\n", lineno, columnno);
+}
+
+bool IsDigit(char c){
+    return c >= '0' && c <= '9';
+}
+
+poly_coeff_t ReadCoeff(){
+    poly_coeff_t x = 0;
+    bool adding = true;
+
+    if(PeekChar() == '-'){
+        PopChar();
+        adding = false;
+    }
+
+    while(IsDigit(PeekChar())){
+        int d = GetChar() - '0';
+        if(x > INT_MAX / 10 || x < INT_MIN / 10){
+            PolyParsingError();
+            return 0;
+        }
+        x *= 10;
+        if(adding){
+            if(INT_MAX - x < d){
+                PolyParsingError();
+                return 0;
+            }
+            else{
+                x += d;
+            }
+        }
+        else{
+            if(x - INT_MIN < d){
+                PolyParsingError();
+                return 0;
+            }
+            else{
+                x -= d;
+            }
+        }
+    }
+
+    return x;
+}
+
+
 Poly ReadPoly(){
-    //TODO
+    if(PeekChar() == '('){//jednomian lub suma jednomianów
+
+    }
+    else{//stała
+        return PolyFromCoeff(ReadCoeff());
+    }
+}
+
+void PrintPoly(const Poly* p){
+    if(PolyIsCoeff(p)){
+        printf("%ld", p->coeff);
+    }
+    else{
+        for(unsigned int i = 0; i < p->length; ++i){
+            if(i > 0){
+                printf("+");
+            }
+            printf("(");
+            PrintPoly(&p->monos[i].p);
+            printf(",%d)", p->monos[i].exp);
+        }
+    }
 }
 
 void ParseLine(){
@@ -195,7 +268,13 @@ void ParseLine(){
         ParseCommand();
     }
     else{
+        polyparsingerror = false;
         Poly p = ReadPoly();
-        //TODO stack calc add
+        ConsumeWhitespace();
+        if(!polyparsingerror){
+            //testing
+            PrintPoly(&p);
+            //TODO stack calc add
+        }
     }
 }
