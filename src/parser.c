@@ -67,6 +67,7 @@ bool StringCmp(String* s, const char* c){
 
 //TODO move declarations up
 char PeekChar();
+#define DEBUGPEEK printf("|%c|\n",PeekChar());
 
 bool EndOfStream(){
     assert(initialized);
@@ -200,6 +201,7 @@ bool IsDigit(char c){
 poly_coeff_t ReadCoeff(){
     poly_coeff_t x = 0;
     bool adding = true;
+    int digits = 0;
 
     if(PeekChar() == '-'){
         PopChar();
@@ -208,13 +210,13 @@ poly_coeff_t ReadCoeff(){
 
     while(IsDigit(PeekChar())){
         int d = GetChar() - '0';
-        if(x > INT_MAX / 10 || x < INT_MIN / 10){
+        if(x > LONG_MAX / 10 || x < LONG_MIN / 10){
             PolyParsingError();
             return 0;
         }
         x *= 10;
         if(adding){
-            if(INT_MAX - x < d){
+            if(LONG_MAX - x < d){
                 PolyParsingError();
                 return 0;
             }
@@ -223,7 +225,7 @@ poly_coeff_t ReadCoeff(){
             }
         }
         else{
-            if(x - INT_MIN < d){
+            if(x - LONG_MIN < d){
                 PolyParsingError();
                 return 0;
             }
@@ -231,15 +233,139 @@ poly_coeff_t ReadCoeff(){
                 x -= d;
             }
         }
+
+        digits++;
     }
 
+    if(digits == 0){
+        PolyParsingError();
+        return 0;
+    }
+
+    printf("coef: %ld\n",x);
     return x;
 }
 
+poly_coeff_t ReadExp(){
+    poly_exp_t x = 0;
+    int digits = 0;
+
+    while(IsDigit(PeekChar())){
+        int d = GetChar() - '0';
+        if(x > INT_MAX / 10){
+            PolyParsingError();
+            return 0;
+        }
+        x *= 10;
+
+        if(INT_MAX - x < d){
+            PolyParsingError();
+            return 0;
+        }
+        else{
+            x += d;
+        }
+        digits++;
+    }
+
+    if(digits == 0){
+        PolyParsingError();
+        return 0;
+    }
+
+    printf("exp: %d\n",x);
+    return x;
+}
+
+typedef struct Monos{
+    Mono* monos;
+    unsigned int length;
+    unsigned int cap;
+} Monos;
+
+Monos MonosEmpty(){
+    Monos r;
+    r.cap = 4;
+    r.monos = malloc(sizeof(Mono) * r.cap);
+    r.length = 0;
+    return r;
+}
+
+void MonosAppend(Monos* r, Mono m){
+    if(r->length >= r->cap){
+        r->cap = 3 * r->cap / 2;
+        r->monos = realloc(r->monos, sizeof(Mono) * r->cap);
+        assert(r->monos != NULL);
+    }
+    r->monos[r->length++] = m;
+}
+
+void MonosFree(Monos* r){
+    free(r->monos);
+    r->monos = NULL;
+}
+
+void MonosDestroy(Monos* r){
+    for(unsigned int i = 0; i < r->length; ++i){
+        MonoDestroy(&r->monos[i]);
+    }
+    MonosFree(r);
+}
+
+Poly MonosMergeIntoPoly(Monos* m){
+    Poly p = PolyAddMonos(m->length, m->monos);
+    MonosFree(m);
+    return p;
+}
 
 Poly ReadPoly(){
     if(PeekChar() == '('){//jednomian lub suma jednomianów
+        Monos monos = MonosEmpty();
 
+        #define FAIL MonosDestroy(&monos);\
+                     return PolyZero(); 
+
+        do{
+            if(PeekChar() == '+'){
+                PopChar();
+            }
+
+            if(GetChar() != '('){
+                PolyParsingError();
+                FAIL
+            }
+            printf("(\n");
+            
+            Mono inner;
+            inner.p = ReadPoly();
+            if(polyparsingerror){//nie trzeba sprzątać po tym Poly gdy był parsing error
+                FAIL
+            }
+
+            if(GetChar() != ','){
+                PolyParsingError();
+                MonosDestroy(&monos);
+                return PolyZero();
+            }
+            printf(",\n");
+            inner.exp = ReadExp();
+            //TODO if polyparsing error here??
+            MonosAppend(&monos, inner);
+            if(polyparsingerror){
+                FAIL
+            }
+
+            if(GetChar() != ')'){
+                PolyParsingError();
+                FAIL
+            }
+            printf(")\n");
+        }
+        while(PeekChar() == '+');
+        
+        #undef FAIL
+
+        return MonosMergeIntoPoly(&monos);
     }
     else{//stała
         return PolyFromCoeff(ReadCoeff());
@@ -273,8 +399,11 @@ void ParseLine(){
         ConsumeWhitespace();
         if(!polyparsingerror){
             //testing
-            PrintPoly(&p);
+            PrintPoly(&p);printf("\n");
             //TODO stack calc add
+        }
+        else{
+            next = EOF;
         }
     }
 }
