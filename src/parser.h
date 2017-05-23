@@ -20,6 +20,10 @@ bool HasMoreLines();
 
 void ParseLine();
 
+unsigned int GetCurrentLine();
+
+unsigned int GetCurrentColumn();
+
 void PrintPoly(const Poly* p);//TODO not sure if we want to export it
 
 #endif

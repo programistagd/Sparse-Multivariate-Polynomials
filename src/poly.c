@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 void PolyDestroy(Poly *p)
 {
@@ -610,4 +611,20 @@ Poly PolyAt(const Poly *p, poly_coeff_t x)
     }
 
     return r;
+}
+
+void PolyPrint(const Poly* p){
+    if(PolyIsCoeff(p)){
+        printf("%ld", p->coeff);
+    }
+    else{
+        for(unsigned int i = 0; i < p->length; ++i){
+            if(i > 0){
+                printf("+");
+            }
+            printf("(");
+            PolyPrint(&p->monos[i].p);
+            printf(",%d)", p->monos[i].exp);
+        }
+    }
 }

@@ -10,64 +10,28 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <assert.h>
-#include <string.h>
 
 #include "parser.h"
 #include "stack_calc.h"
 #include "poly.h"
+#include "dynamics.h"
+#include "errors.h"
 
 static bool initialized = false;
 static char next = ' ';
 static int lineno;
 static int columnno;
 
-typedef struct String{
-    char* str;
-    int length;
-    int capacity;
-} String;
-
-void StringExpand(String* s, int newcap){
-    s->str = realloc(s->str, newcap);
-    assert(s->str != NULL);
-    s->capacity = newcap;
+unsigned int GetCurrentLine(){
+    return lineno + 1;
 }
 
-void StringDestroy(String* s){
-    free(s->str);
-    s->capacity = 0;
+unsigned int GetCurrentColumn(){
+    return columnno + 1;
 }
-
-String StringEmpty(){
-    String s;
-    s.length = 0;
-    s.str = NULL;
-    StringExpand(&s, 10);
-    return s;
-}
-
-void StringAppend(String* s, char c){
-    if(s->length >= s->capacity - 1){
-        StringExpand(s, (3*s->capacity)/2);
-    }
-
-    assert(s->length < s->capacity);
-    s->str[s->length++] = c;
-    s->str[s->length] = '\0';
-}
-
-const char* StringCStr(String* s){
-    return s->str;
-}
-
-bool StringCmp(String* s, const char* c){
-    return strcmp(s->str, c) == 0;
-}
-
 
 //TODO move declarations up
 char PeekChar();
-#define DEBUGPEEK printf("|%c|\n",PeekChar());
 
 bool EndOfStream(){
     assert(initialized);
@@ -75,19 +39,27 @@ bool EndOfStream(){
 }
 
 void PopChar(){
-    if(next == '\n'){
-        lineno += 1;
-        columnno = 0;
-    }
-
     if(!EndOfStream()){
         next = getchar();
         columnno += 1;
     }
 }
 
+void debugprint(char c){
+    if(c == '\n'){
+        printf("|\\n|\n");
+    }
+    else if(c == EOF){
+        printf("|EOF|\n");
+    }
+    else{
+        printf("|%c|\n",c);
+    }
+}
+
 char PeekChar(){
     assert(initialized);
+    //debugprint(next);
     return next;
 }
 
@@ -116,89 +88,25 @@ bool IsLetter(char c){
 }
 
 bool IsWhiteSpace(char c){
-    return c == ' ' || c == '\n' || c == '\r' || c == '\t';
-}
-
-void ConsumeWhitespace(){
-    while(IsWhiteSpace(PeekChar())){
-        GetChar();
-    }
-}
-
-void PrintError(const char* text){
-    printf("ERROR %d %s\n", lineno, text);
-}
-
-void ParseCommand(){
-    String s = StringEmpty();
-    while(!IsWhiteSpace(PeekChar())){
-        StringAppend(&s, GetChar());
-    }
-    ConsumeWhitespace();   
-
-    printf("'%s'\n",StringCStr(&s));
-    if(StringCmp(&s, "ZERO")){
-        //TODO
-    }
-    else if(StringCmp(&s, "IS_COEFF")){
-        //TODO
-    }
-    else if(StringCmp(&s, "IS_ZERO")){
-        //TODO
-    }
-    else if(StringCmp(&s, "CLONE")){
-        //TODO
-    }
-    else if(StringCmp(&s, "ADD")){
-        //TODO
-    }
-    else if(StringCmp(&s, "MUL")){
-        //TODO
-    }
-    else if(StringCmp(&s, "NEG")){
-        //TODO
-    }
-    else if(StringCmp(&s, "SUB")){
-        //TODO
-    }
-    else if(StringCmp(&s, "IS_EQ")){
-        //TODO
-    }
-    else if(StringCmp(&s, "DEG")){
-        //TODO
-    }
-    else if(StringCmp(&s, "DEG_BY")){
-        //TODO idx
-        //TODO
-    }
-    else if(StringCmp(&s, "AT")){
-        //poly_coeff_t x = ReadCoeff();//TODO!
-        ConsumeWhitespace();
-        //TODO
-    }
-    else if(StringCmp(&s, "PRINT")){
-        //TODO
-    }
-    else if(StringCmp(&s, "POP")){
-        //TODO
-    }
-    else{
-        PrintError("WRONG COMMAND");
-    }
-}
-
-static bool polyparsingerror;
-
-void PolyParsingError(){
-    polyparsingerror = true;
-    printf("ERROR %d %d\n", lineno, columnno);
+    return c == ' ' || c == '\r' || c == '\t';
 }
 
 bool IsDigit(char c){
     return c >= '0' && c <= '9';
 }
 
-poly_coeff_t ReadCoeff(){
+bool IsEnding(char c){
+    return c == '\n' || c == EOF;
+}
+
+void ConsumeLine(){
+    while(!IsEnding(PeekChar())){
+        PopChar();
+    }
+    PopChar();//usuwamy \n
+}
+
+ParsingResult ReadCoeff(){
     poly_coeff_t x = 0;
     bool adding = true;
     int digits = 0;
@@ -209,25 +117,24 @@ poly_coeff_t ReadCoeff(){
     }
 
     while(IsDigit(PeekChar())){
-        int d = GetChar() - '0';
+        poly_coeff_t d = GetChar() - '0';
+        
         if(x > LONG_MAX / 10 || x < LONG_MIN / 10){
-            PolyParsingError();
-            return 0;
+            return ParsingError();
         }
         x *= 10;
         if(adding){
-            if(LONG_MAX - x < d){
-                PolyParsingError();
-                return 0;
+            if(d > LONG_MAX - x){
+                return ParsingError();
             }
             else{
                 x += d;
             }
         }
         else{
-            if(x - LONG_MIN < d){
-                PolyParsingError();
-                return 0;
+
+            if(-d < LONG_MIN - x){
+                return ParsingError();
             }
             else{
                 x -= d;
@@ -238,29 +145,25 @@ poly_coeff_t ReadCoeff(){
     }
 
     if(digits == 0){
-        PolyParsingError();
-        return 0;
+        return ParsingError();
     }
 
-    printf("coef: %ld\n",x);
-    return x;
+    return PackCoeff(x);
 }
 
-poly_coeff_t ReadExp(){
+ParsingResult ReadExp(){
     poly_exp_t x = 0;
     int digits = 0;
 
     while(IsDigit(PeekChar())){
-        int d = GetChar() - '0';
+        poly_exp_t d = GetChar() - '0';
         if(x > INT_MAX / 10){
-            PolyParsingError();
-            return 0;
+            return ParsingError();
         }
         x *= 10;
 
-        if(INT_MAX - x < d){
-            PolyParsingError();
-            return 0;
+        if(d > INT_MAX - x){
+            return ParsingError();
         }
         else{
             x += d;
@@ -269,141 +172,218 @@ poly_coeff_t ReadExp(){
     }
 
     if(digits == 0){
-        PolyParsingError();
-        return 0;
+        return ParsingError();
     }
 
-    printf("exp: %d\n",x);
-    return x;
+    return PackExp(x);
 }
 
-typedef struct Monos{
-    Mono* monos;
-    unsigned int length;
-    unsigned int cap;
-} Monos;
+ParsingResult ReadDeg(){
+    unsigned int x = 0;
+    int digits = 0;
 
-Monos MonosEmpty(){
-    Monos r;
-    r.cap = 4;
-    r.monos = malloc(sizeof(Mono) * r.cap);
-    r.length = 0;
-    return r;
-}
-
-void MonosAppend(Monos* r, Mono m){
-    if(r->length >= r->cap){
-        r->cap = 3 * r->cap / 2;
-        r->monos = realloc(r->monos, sizeof(Mono) * r->cap);
-        assert(r->monos != NULL);
+    while(IsDigit(PeekChar())){
+        unsigned int d = GetChar() - '0';
+        if(x > UINT_MAX / 10){
+            return ParsingError();
+        }
+        x *= 10;
+        if(x + d < x){//jeśli suma jest mniejsza od samego wyrazu a dodajemy dodatnie to znaczy że był overflow i się zawinęło, czyli za duża liczba
+            return ParsingError();
+        }
+        x += d;
+        digits++;
     }
-    r->monos[r->length++] = m;
-}
 
-void MonosFree(Monos* r){
-    free(r->monos);
-    r->monos = NULL;
-}
-
-void MonosDestroy(Monos* r){
-    for(unsigned int i = 0; i < r->length; ++i){
-        MonoDestroy(&r->monos[i]);
+    if(digits == 0){
+        return ParsingError();
     }
-    MonosFree(r);
+
+    return PackDeg(x);
 }
 
-Poly MonosMergeIntoPoly(Monos* m){
-    Poly p = PolyAddMonos(m->length, m->monos);
-    MonosFree(m);
-    return p;
-}
-
-Poly ReadPoly(){
+ParsingResult ReadPoly(){
     if(PeekChar() == '('){//jednomian lub suma jednomianów
         Monos monos = MonosEmpty();
-
-        #define FAIL MonosDestroy(&monos);\
-                     return PolyZero(); 
 
         do{
             if(PeekChar() == '+'){
                 PopChar();
             }
 
-            if(GetChar() != '('){
-                PolyParsingError();
-                FAIL
+            if(PeekChar() != '('){
+                MonosDestroy(&monos);
+                return ParsingError();
             }
-            printf("(\n");
+            PopChar();
             
             Mono inner;
-            inner.p = ReadPoly();
-            if(polyparsingerror){//nie trzeba sprzątać po tym Poly gdy był parsing error
-                FAIL
-            }
-
-            if(GetChar() != ','){
-                PolyParsingError();
+            ParsingResult res_poly = ReadPoly();
+            if(IsError(res_poly)){
                 MonosDestroy(&monos);
-                return PolyZero();
-            }
-            printf(",\n");
-            inner.exp = ReadExp();
-            //TODO if polyparsing error here??
-            MonosAppend(&monos, inner);
-            if(polyparsingerror){
-                FAIL
+                return res_poly;
             }
 
-            if(GetChar() != ')'){
-                PolyParsingError();
-                FAIL
+            inner.p = UnpackPoly(res_poly);
+
+            if(PeekChar() != ','){
+                PolyDestroy(&inner.p);
+                MonosDestroy(&monos);
+                return ParsingError();
             }
-            printf(")\n");
+            PopChar();
+
+            ParsingResult res_exp = ReadExp();
+            if(IsError(res_exp)){
+                PolyDestroy(&inner.p);
+                MonosDestroy(&monos);
+                return res_exp;
+            }
+
+            inner.exp = UnpackExp(res_exp);
+
+            MonosAppend(&monos, inner);//dodajemy wielomian do "listy"
+
+            if(PeekChar() != ')'){
+                MonosDestroy(&monos);
+                return ParsingError();
+            }
+            PopChar();
+
         }
         while(PeekChar() == '+');
-        
-        #undef FAIL
 
-        return MonosMergeIntoPoly(&monos);
+        return PackPoly(MonosMergeIntoPoly(&monos));
     }
-    else{//stała
-        return PolyFromCoeff(ReadCoeff());
+    else{
+        ParsingResult res_coeff = ReadCoeff();
+        
+        if(IsError(res_coeff)){
+            return res_coeff;
+        }
+
+        Poly p = PolyFromCoeff(UnpackCoeff(res_coeff));
+
+        return PackPoly(p);
     }
 }
 
-void PrintPoly(const Poly* p){
-    if(PolyIsCoeff(p)){
-        printf("%ld", p->coeff);
+void PrintError(const char* text){
+    printf("ERROR %d %s\n", lineno+1, text);
+}
+
+void ParseCommand(){
+    String s = StringEmpty();
+    while(!IsWhiteSpace(PeekChar())){
+        StringAppend(&s, GetChar());
+    }
+    
+    printf("'%s'\n",StringCStr(&s));
+    if(StringCmp(&s, "DEG_BY") || StringCmp(&s, "AT")){
+        if(PeekChar() != ' '){
+            PrintError("ERROR Jakiś TODO");
+            ConsumeLine();
+            return;
+        }
+
+        PopChar();//zjadamy spację
+        if(StringCmp(&s, "DEG_BY")){
+            //TODO idx
+            //TODO
+        }
+        else if(StringCmp(&s, "AT")){
+            //poly_coeff_t x = ReadCoeff();//TODO!
+            //ConsumeWhitespace();
+            //TODO
+        }
     }
     else{
-        for(unsigned int i = 0; i < p->length; ++i){
-            if(i > 0){
-                printf("+");
-            }
-            printf("(");
-            PrintPoly(&p->monos[i].p);
-            printf(",%d)", p->monos[i].exp);
+        if(!IsEnding(PeekChar())){
+            PrintError("WRONG COMMAND");
+            ConsumeLine();
+            return;
         }
+
+        PopChar();//zjadamy koniec linii
+        if(StringCmp(&s, "ZERO")){
+            //TODO
+        }
+        else if(StringCmp(&s, "IS_COEFF")){
+            //TODO
+        }
+        else if(StringCmp(&s, "IS_ZERO")){
+            //TODO
+        }
+        else if(StringCmp(&s, "CLONE")){
+            //TODO
+        }
+        else if(StringCmp(&s, "ADD")){
+            //TODO
+        }
+        else if(StringCmp(&s, "MUL")){
+            //TODO
+        }
+        else if(StringCmp(&s, "NEG")){
+            //TODO
+        }
+        else if(StringCmp(&s, "SUB")){
+            //TODO
+        }
+        else if(StringCmp(&s, "IS_EQ")){
+            //TODO
+        }
+        else if(StringCmp(&s, "DEG")){
+            //TODO
+        }
+        else if(StringCmp(&s, "PRINT")){
+            //TODO
+        }
+        else if(StringCmp(&s, "POP")){
+            //TODO
+        }
+        else{
+            PrintError("WRONG COMMAND");
+        }
+    }
+}
+
+ParsingResult ParsePoly(){
+    ParsingResult res_poly = ReadPoly();
+    
+    if(IsError(res_poly)){
+        return res_poly;
+    }
+    else{
+        if(!IsEnding(PeekChar())){//na sam koniec upewnijmy się że jest znak nowej linii / eof
+            Poly p = UnpackPoly(res_poly);
+            PolyDestroy(&p);
+            return ParsingError();
+        }
+        PopChar();
+        return res_poly;
     }
 }
 
 void ParseLine(){
     char first = PeekChar();
+    //printf("{%c}\n",first);
     if(IsLetter(first)){
         ParseCommand();
     }
     else{
-        polyparsingerror = false;
-        Poly p = ReadPoly();
-        ConsumeWhitespace();
-        if(!polyparsingerror){
-            //testing
-            PrintPoly(&p);printf("\n");
-            //TODO stack calc add
+        ParsingResult res_poly = ParsePoly();
+        if(IsError(res_poly)){
+            PrintParsingError(res_poly);
+            ConsumeLine();
         }
         else{
-            next = EOF;
+            Poly p = UnpackPoly(res_poly);
+
+            //TODO wrzuć na stos
+            PolyPrint(&p);printf("\n");//debug
         }
     }
+
+    lineno += 1;
+    columnno = 0;
 }

@@ -25,6 +25,10 @@ set(SOURCE_FILES
     src/poly.h
     src/parser.c
     src/parser.h
+    src/dynamics.c
+    src/dynamics.h
+    src/errors.c
+    src/errors.h
     src/stack_calc.c
     src/stack_calc.h
     src/main.c
