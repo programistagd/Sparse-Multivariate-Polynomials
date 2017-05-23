@@ -75,8 +75,6 @@ void Initialize(){
     lineno = 0;
     columnno = 0;
     next = getchar();
-
-    //TODO prepare stack calc
 }
 
 bool HasMoreLines(){
@@ -284,7 +282,6 @@ void ParseCommand(PolyStack* stack){
         StringAppend(&s, GetChar());
     }
     
-    //printf("'%s'\n",StringCStr(&s));
     if(StringCmp(&s, "DEG_BY") || StringCmp(&s, "AT")){
         if(PeekChar() != ' '){
             PrintError("WRONG COMMAND");
@@ -294,13 +291,30 @@ void ParseCommand(PolyStack* stack){
         PopChar();//zjadamy spację
 
         if(StringCmp(&s, "DEG_BY")){
-            //TODO idx
-            //TODO
+            ParsingResult res_idx = ReadDeg();
+            
+            if(IsError(res_idx) || !IsEnding(PeekChar())){
+                PrintError("WRONG VARIABLE");
+                ConsumeLine();
+                return;
+            }
+            PopChar();//zjadamy koniec linii
+            
+            unsigned int idx = UnpackDeg(res_idx);
+            CalcDegBy(stack, idx);
         }
         else if(StringCmp(&s, "AT")){
-            //poly_coeff_t x = ReadCoeff();//TODO!
-            //ConsumeWhitespace();
-            //TODO
+            ParsingResult res_x = ReadCoeff();
+
+            if(IsError(res_x) || !IsEnding(PeekChar())){
+                PrintError("WRONG VALUE");
+                ConsumeLine();
+                return;
+            }
+            PopChar();//zjadamy koniec linii
+            
+            poly_coeff_t x = UnpackCoeff(res_x);
+            CalcAt(stack, x);
         }
     }
     else{
