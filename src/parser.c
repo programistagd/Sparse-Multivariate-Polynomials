@@ -274,19 +274,19 @@ void PrintError(const char* text){
 
 void ParseCommand(){
     String s = StringEmpty();
-    while(!IsWhiteSpace(PeekChar())){
+    while(IsLetter(PeekChar())){
         StringAppend(&s, GetChar());
     }
     
-    printf("'%s'\n",StringCStr(&s));
+    //printf("'%s'\n",StringCStr(&s));
     if(StringCmp(&s, "DEG_BY") || StringCmp(&s, "AT")){
         if(PeekChar() != ' '){
-            PrintError("ERROR Jakiś TODO");
+            PrintError("WRONG COMMAND");
             ConsumeLine();
             return;
         }
-
         PopChar();//zjadamy spację
+
         if(StringCmp(&s, "DEG_BY")){
             //TODO idx
             //TODO
@@ -303,8 +303,8 @@ void ParseCommand(){
             ConsumeLine();
             return;
         }
-
         PopChar();//zjadamy koniec linii
+
         if(StringCmp(&s, "ZERO")){
             //TODO
         }
