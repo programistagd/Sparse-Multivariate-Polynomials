@@ -273,7 +273,7 @@ ParsingResult ReadPoly(){
 }
 
 void PrintError(const char* text){
-    printf("ERROR %d %s\n", lineno+1, text);
+    fprintf(stderr, "ERROR %d %s\n", lineno+1, text);
 }
 
 void ParseCommand(PolyStack* stack){

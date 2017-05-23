@@ -66,5 +66,5 @@ Poly UnpackPoly(ParsingResult r){
 
 void PrintParsingError(ParsingResult r){
     assert(r.type == PRT_ERROR);
-    printf("ERROR %d %d\n", r.line, r.column);
+    fprintf(stderr, "ERROR %d %d\n", r.line, r.column);
 }
