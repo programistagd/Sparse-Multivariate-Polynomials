@@ -25,6 +25,6 @@ unsigned int GetCurrentLine();
 
 unsigned int GetCurrentColumn();
 
-void PrintPoly(const Poly* p);//TODO not sure if we want to export it
+void PrintError(const char* text);
 
 #endif

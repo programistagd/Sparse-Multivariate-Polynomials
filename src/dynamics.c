@@ -79,6 +79,12 @@ bool StringCmp(const String* s, const char* c){
     return strcmp(s->str, c) == 0;
 }
 
+void StringFree(String* s){
+    free(s->str);
+    s->str = NULL;
+    s->length = s->capacity = 0;
+}
+
 PolyStack PolyStackEmpty(){
     PolyStack r;
     r.cap = 4;
@@ -97,12 +103,13 @@ bool PolyStackIsEmpty(const PolyStack* stack){
 
 const Poly* PolyStackPeek(PolyStack* stack){
     assert(!PolyStackIsEmpty(stack));
-    return &stack->polys[stack->length-1];
+    return &stack->polys[stack->length - 1];
 }
 
 Poly PolyStackPop(PolyStack* stack){
     assert(!PolyStackIsEmpty(stack));
-    Poly p = stack->polys[stack->length--];
+    Poly p = stack->polys[stack->length - 1];
+    stack->length--;
     //TODO maybe shrink sometimes?
     return p;
 }
@@ -115,4 +122,13 @@ void PolyStackPush(PolyStack* s, Poly p){
     }
     assert(s->length < s->cap);
     s->polys[s->length++] = p;
+}
+
+void PolyStackDestroy(PolyStack* stack){
+    for(unsigned int i = 0; i < stack->length; ++i){//usuwamy wielomiany które pozostały na stosie
+        PolyDestroy(&stack->polys[i]);
+    }
+    free(stack->polys);
+    stack->polys = NULL;
+    stack->length = stack->cap = 0;
 }

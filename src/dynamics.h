@@ -39,6 +39,8 @@ unsigned int StringLength(const String* s);
 
 bool StringCmp(const String* s, const char* c);
 
+void StringFree(String* s);
+
 typedef struct PolyStack{
     Poly* polys;
     unsigned int length;
@@ -56,5 +58,7 @@ const Poly* PolyStackPeek(PolyStack* stack);
 Poly PolyStackPop(PolyStack* stack);
 
 void PolyStackPush(PolyStack* s, Poly p);
+
+void PolyStackDestroy(PolyStack* stack);
 
 #endif

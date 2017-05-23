@@ -15,5 +15,7 @@ int main(){
     while(HasMoreLines()){
         ParseLine(&stack);
     }
+
+    PolyStackDestroy(&stack);
     return 0;
 }
