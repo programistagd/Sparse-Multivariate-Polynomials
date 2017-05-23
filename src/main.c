@@ -10,9 +10,10 @@
 #include "stack_calc.h"
 
 int main(){
+    PolyStack stack = PolyStackEmpty();
     Initialize();
     while(HasMoreLines()){
-        ParseLine();
+        ParseLine(&stack);
     }
     return 0;
 }

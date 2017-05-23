@@ -71,6 +71,48 @@ const char* StringCStr(String* s){
     return s->str;
 }
 
-bool StringCmp(String* s, const char* c){
+unsigned int StringLength(const String* s){
+    return s->length;
+}
+
+bool StringCmp(const String* s, const char* c){
     return strcmp(s->str, c) == 0;
+}
+
+PolyStack PolyStackEmpty(){
+    PolyStack r;
+    r.cap = 4;
+    r.polys = malloc(sizeof(Poly) * r.cap);
+    r.length = 0;
+    return r;
+}
+
+unsigned int PolyStackSize(const PolyStack* stack){
+    return stack->length;
+}
+
+bool PolyStackIsEmpty(const PolyStack* stack){
+    return PolyStackSize(stack) == 0;
+}
+
+const Poly* PolyStackPeek(PolyStack* stack){
+    assert(!PolyStackIsEmpty(stack));
+    return &stack->polys[stack->length-1];
+}
+
+Poly PolyStackPop(PolyStack* stack){
+    assert(!PolyStackIsEmpty(stack));
+    Poly p = stack->polys[stack->length--];
+    //TODO maybe shrink sometimes?
+    return p;
+}
+
+void PolyStackPush(PolyStack* s, Poly p){
+    if(s->length >= s->cap){
+        s->cap = 3 * s->cap / 2;
+        s->polys = realloc(s->polys, sizeof(Poly) * s->cap);
+        assert(s->polys != NULL);
+    }
+    assert(s->length < s->cap);
+    s->polys[s->length++] = p;
 }

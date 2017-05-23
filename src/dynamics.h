@@ -35,6 +35,26 @@ void StringAppend(String* s, char c);
 
 const char* StringCStr(String* s);
 
-bool StringCmp(String* s, const char* c);
+unsigned int StringLength(const String* s);
+
+bool StringCmp(const String* s, const char* c);
+
+typedef struct PolyStack{
+    Poly* polys;
+    unsigned int length;
+    unsigned int cap;
+} PolyStack;
+
+PolyStack PolyStackEmpty();
+
+unsigned int PolyStackSize(const PolyStack* stack);
+
+bool PolyStackIsEmpty(const PolyStack* stack);
+
+const Poly* PolyStackPeek(PolyStack* stack);
+
+Poly PolyStackPop(PolyStack* stack);
+
+void PolyStackPush(PolyStack* s, Poly p);
 
 #endif

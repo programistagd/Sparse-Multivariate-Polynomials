@@ -13,12 +13,13 @@
 
 #include <stdbool.h>
 #include "poly.h"
+#include "dynamics.h"
 
 void Initialize();
 
 bool HasMoreLines();
 
-void ParseLine();
+void ParseLine(PolyStack* stack);
 
 unsigned int GetCurrentLine();
 

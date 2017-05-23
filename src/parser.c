@@ -84,7 +84,11 @@ bool HasMoreLines(){
 }
 
 bool IsLetter(char c){
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+}
+
+bool IsCommandLetter(char c){
+    return IsLetter(c) || c == '_';
 }
 
 bool IsWhiteSpace(char c){
@@ -272,9 +276,11 @@ void PrintError(const char* text){
     printf("ERROR %d %s\n", lineno+1, text);
 }
 
-void ParseCommand(){
+void ParseCommand(PolyStack* stack){
+    const unsigned int longest_command_name = 8;
+
     String s = StringEmpty();
-    while(IsLetter(PeekChar())){
+    while(IsCommandLetter(PeekChar()) && StringLength(&s) < longest_command_name){
         StringAppend(&s, GetChar());
     }
     
@@ -306,40 +312,40 @@ void ParseCommand(){
         PopChar();//zjadamy koniec linii
 
         if(StringCmp(&s, "ZERO")){
-            //TODO
+            CalcZero(stack);
         }
         else if(StringCmp(&s, "IS_COEFF")){
-            //TODO
+            CalcIsCoeff(stack);
         }
         else if(StringCmp(&s, "IS_ZERO")){
-            //TODO
+            CalcIsZero(stack);
         }
         else if(StringCmp(&s, "CLONE")){
-            //TODO
+            CalcClone(stack);
         }
         else if(StringCmp(&s, "ADD")){
-            //TODO
+            CalcAdd(stack);
         }
         else if(StringCmp(&s, "MUL")){
-            //TODO
+            CalcMul(stack);
         }
         else if(StringCmp(&s, "NEG")){
-            //TODO
+            CalcNeg(stack);
         }
         else if(StringCmp(&s, "SUB")){
-            //TODO
+            CalcSub(stack);
         }
         else if(StringCmp(&s, "IS_EQ")){
-            //TODO
+            CalcIsEq(stack);
         }
         else if(StringCmp(&s, "DEG")){
-            //TODO
+            CalcDeg(stack);
         }
         else if(StringCmp(&s, "PRINT")){
-            //TODO
+            CalcPrint(stack);
         }
         else if(StringCmp(&s, "POP")){
-            //TODO
+            CalcPop(stack);
         }
         else{
             PrintError("WRONG COMMAND");
@@ -364,11 +370,11 @@ ParsingResult ParsePoly(){
     }
 }
 
-void ParseLine(){
+void ParseLine(PolyStack* stack){
     char first = PeekChar();
     //printf("{%c}\n",first);
     if(IsLetter(first)){
-        ParseCommand();
+        ParseCommand(stack);
     }
     else{
         ParsingResult res_poly = ParsePoly();
@@ -378,9 +384,7 @@ void ParseLine(){
         }
         else{
             Poly p = UnpackPoly(res_poly);
-
-            //TODO wrzuć na stos
-            PolyPrint(&p);printf("\n");//debug
+            CalcPush(stack, p);
         }
     }
 
