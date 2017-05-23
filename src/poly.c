@@ -153,7 +153,7 @@ Poly PolyAdd(const Poly *p, const Poly *q)
         }
         else /*if(pm->exp > qm->exp)*/
         {
-            if (!PolyIsZero(&pm->p))
+            if (!PolyIsZero(&qm->p))
             {
                 r.monos[r.length++] = MonoClone(qm);
             }

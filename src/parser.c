@@ -119,7 +119,7 @@ ParsingResult ReadCoeff(){
     }
 
     while(IsDigit(PeekChar())){
-        poly_coeff_t d = GetChar() - '0';
+        poly_coeff_t d = PeekChar() - '0';
         
         if(x > LONG_MAX / 10 || x < LONG_MIN / 10){
             return ParsingError();
@@ -143,6 +143,7 @@ ParsingResult ReadCoeff(){
             }
         }
 
+        PopChar();
         digits++;
     }
 
@@ -158,7 +159,7 @@ ParsingResult ReadExp(){
     int digits = 0;
 
     while(IsDigit(PeekChar())){
-        poly_exp_t d = GetChar() - '0';
+        poly_exp_t d = PeekChar() - '0';
         if(x > INT_MAX / 10){
             return ParsingError();
         }
@@ -170,6 +171,8 @@ ParsingResult ReadExp(){
         else{
             x += d;
         }
+
+        PopChar();
         digits++;
     }
 
@@ -185,7 +188,7 @@ ParsingResult ReadDeg(){
     int digits = 0;
 
     while(IsDigit(PeekChar())){
-        unsigned int d = GetChar() - '0';
+        unsigned int d = PeekChar() - '0';
         if(x > UINT_MAX / 10){
             return ParsingError();
         }
@@ -194,6 +197,8 @@ ParsingResult ReadDeg(){
             return ParsingError();
         }
         x += d;
+
+        PopChar();
         digits++;
     }
 
