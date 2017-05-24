@@ -26,9 +26,9 @@ START=""
 FILES="$DIR/*"
 for file in $FILES; do
     #echo "Sprawdzam $file"
-    FIRSTLINE=`head -1 $file`
+    FIRSTLINE=`head -1 "${file}"`
     if [ "$FIRSTLINE" = "START" ]; then
-        START="$file"
+        START="${file}"
         FOUND_START=1
         break
     fi
@@ -38,8 +38,6 @@ if [ $FOUND_START -ne 1 ]; then
     echo "Nie znaleziono pliku zacznynającego się linią START"
     exit 1
 fi
-
-#echo "$PROG -> $DIR @ $START"
 
 TRIMMED_START=`mktemp`
 cat "$START" | tail -n+2 > "$TRIMMED_START"
