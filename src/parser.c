@@ -30,9 +30,6 @@ unsigned int GetCurrentColumn(){
     return columnno + 1;
 }
 
-//TODO move declarations up
-char PeekChar();
-
 bool EndOfStream(){
     assert(initialized);
     return PeekChar() == EOF;
@@ -45,21 +42,8 @@ void PopChar(){
     }
 }
 
-void debugprint(char c){
-    if(c == '\n'){
-        printf("|\\n|\n");
-    }
-    else if(c == EOF){
-        printf("|EOF|\n");
-    }
-    else{
-        printf("|%c|\n",c);
-    }
-}
-
 char PeekChar(){
     assert(initialized);
-    //debugprint(next);
     return next;
 }
 
@@ -87,10 +71,6 @@ bool IsLetter(char c){
 
 bool IsCommandLetter(char c){
     return IsLetter(c) || c == '_';
-}
-
-bool IsWhiteSpace(char c){
-    return c == ' ' || c == '\r' || c == '\t';
 }
 
 bool IsDigit(char c){

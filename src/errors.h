@@ -9,6 +9,10 @@ typedef struct ParsingResult{
         poly_exp_t exp;
         unsigned int deg;
         Poly poly;
+        struct{
+            unsigned int line;
+            unsigned int column;
+        } error;
     } result;
     enum {
         PRT_ERROR,
@@ -17,8 +21,6 @@ typedef struct ParsingResult{
         PRT_DEG,
         PRT_POLY
     } type;
-    unsigned int line;
-    unsigned int column;
 } ParsingResult;
 
 ParsingResult ParsingError();

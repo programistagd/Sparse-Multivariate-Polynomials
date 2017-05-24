@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include "poly.h"
 #include "dynamics.h"
+#include "errors.h"
 
 void Initialize();
 
@@ -26,5 +27,34 @@ unsigned int GetCurrentLine();
 unsigned int GetCurrentColumn();
 
 void PrintError(const char* text);
+
+
+bool EndOfStream();
+
+void PopChar();
+
+char PeekChar();
+
+char GetChar();
+
+bool IsLetter(char c);
+
+bool IsCommandLetter(char c);
+
+bool IsDigit(char c);
+
+bool IsEnding(char c);
+
+void ConsumeLine();
+
+ParsingResult ReadCoeff();
+
+ParsingResult ReadExp();
+
+ParsingResult ReadDeg();
+
+ParsingResult ReadPoly();
+
+void ParseCommand(PolyStack* stack);
 
 #endif

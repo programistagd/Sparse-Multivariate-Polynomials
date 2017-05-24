@@ -7,8 +7,8 @@
 ParsingResult ParsingError(){
     ParsingResult r;
     r.type = PRT_ERROR;
-    r.line = GetCurrentLine();
-    r.column = GetCurrentColumn();
+    r.result.error.line = GetCurrentLine();
+    r.result.error.column = GetCurrentColumn();
     return r;
 }
 
@@ -66,5 +66,5 @@ Poly UnpackPoly(ParsingResult r){
 
 void PrintParsingError(ParsingResult r){
     assert(r.type == PRT_ERROR);
-    fprintf(stderr, "ERROR %d %d\n", r.line, r.column);
+    fprintf(stderr, "ERROR %d %d\n", r.result.error.line, r.result.error.column);
 }
