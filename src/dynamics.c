@@ -20,7 +20,11 @@ void MonosAppend(Monos* r, Mono m){
     r->monos[r->length++] = m;
 }
 
-void MonosFree(Monos* r){
+/**
+ * Zwalnia pamięć używaną przez tablicę.
+ * @param[in,out] r : tablica
+ */
+static void MonosFree(Monos* r){
     free(r->monos);
     r->monos = NULL;
 }
@@ -38,7 +42,12 @@ Poly MonosMergeIntoPoly(Monos* m){
     return p;
 }
 
-void StringExpand(String* s, int newcap){
+/**
+ * Zwiększa ilość pamięci zaalokowanej dla łańcucha.
+ * @param[in,out] s : łańcuch
+ * @param[in] newcap : nowa pojemność
+ */
+static void StringExpand(String* s, int newcap){
     s->str = realloc(s->str, newcap);
     assert(s->str != NULL);
     s->capacity = newcap;
@@ -54,6 +63,7 @@ String StringEmpty(){
     s.length = 0;
     s.str = NULL;
     StringExpand(&s, 10);
+    s.str[0] = '\0';
     return s;
 }
 

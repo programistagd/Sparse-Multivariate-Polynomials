@@ -10,6 +10,12 @@
 #include "parser.h"
 #include <stdio.h>
 
+/**
+ * Upewnia się, że na stosie jest wystarczająco dużo wielomianów i w przypadku gdy ich brakuje wypisuje odpowiedni błąd na stderr.
+ * @param[in,out] stack : stos
+ * @param[in] size : liczba wymaganych wielomianów
+ * @return true jeśli na stosie jest wystarczająco dużo miejsca lub false gdy wystąpił błąd
+ */
 static bool EnsureStackSize(PolyStack* stack, unsigned int size){
     if(PolyStackSize(stack) < size){
         PrintError("STACK UNDERFLOW");
@@ -18,6 +24,10 @@ static bool EnsureStackSize(PolyStack* stack, unsigned int size){
     return true;
 }
 
+/**
+ * Upewnia się, że na stosie jest wystarczająco dużo wielomianów i jeśli ich brakuje, opuszcza przedwcześnie aktualną funkcję.
+ * @param[in] x : liczba wymaganych wielomianów
+ */
 #define ENSURESTACKSIZE(x) if(!EnsureStackSize(stack, (x))) {return;}
 
 void CalcZero(PolyStack* stack){
@@ -42,7 +52,12 @@ void CalcClone(PolyStack* stack){
     PolyStackPush(stack, copy);
 }
 
-void CalcOp(PolyStack* stack, Poly (*op)(const Poly*, const Poly*)){
+/**
+ * Zdejmuje ze stosu dwa wielomiany i wrzuca z powrotem wynik wywołania op na tej parze
+ * @param[in,out] stack : stos
+ * @param[in] op : operacja przyjmująca wskaźniki na dwa wielomiany i zwracająca wielomian
+ */
+static void CalcOp(PolyStack* stack, Poly (*op)(const Poly*, const Poly*)){
     ENSURESTACKSIZE(2)
     Poly a = PolyStackPop(stack);
     Poly b = PolyStackPop(stack);

@@ -17,10 +17,10 @@
 #include "dynamics.h"
 #include "errors.h"
 
-static bool initialized = false;
-static char next = ' ';
-static int lineno;
-static int columnno;
+static bool initialized = false;///< czy została wykonana funkcja Initialize przygotowująca parser
+static char next = ' ';///< najbliższy znak przychodzący z stdin
+static int lineno;///< numer aktualnie przetwarzanego wiersza
+static int columnno;///< numer aktualnie przetwarzanej kolumny
 
 unsigned int GetCurrentLine(){
     return lineno + 1;

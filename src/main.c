@@ -9,6 +9,10 @@
 #include "parser.h"
 #include "stack_calc.h"
 
+/**
+ * Punkt wejścia programu kalkulatora stosowego.
+ * @return wynik działania (zawsze 0)
+ */
 int main(){
     PolyStack stack = PolyStackEmpty();
     Initialize();

@@ -219,6 +219,12 @@ bool PolyIsEq(const Poly *p, const Poly *q);
  */
 Poly PolyAt(const Poly *p, poly_coeff_t x);
 
+/**
+ * Wypisuje wielomian na stdout.
+ *
+ * Wypisywany wielomian ma postać pojedynczej liczby (gdy współczynnik) lub (p1,e1)+(p2,e2)+...+(pn,en) gdy złożony wielomian (gdzie p1 to zagnieżdżone wielomiany)
+ * @param[in] p : wielomian
+ */
 void PolyPrint(const Poly* p);
 
 #endif /* __POLY_H__ */
