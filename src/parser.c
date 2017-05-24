@@ -291,6 +291,7 @@ void ParseCommand(PolyStack* stack){
         if(PeekChar() != ' '){
             PrintError("WRONG COMMAND");
             ConsumeLine();
+            StringFree(&s);
             return;
         }
         PopChar();//zjadamy spację
@@ -301,6 +302,7 @@ void ParseCommand(PolyStack* stack){
             if(IsError(res_idx) || !IsEnding(PeekChar())){
                 PrintError("WRONG VARIABLE");
                 ConsumeLine();
+                StringFree(&s);
                 return;
             }
             PopChar();//zjadamy koniec linii
@@ -314,6 +316,7 @@ void ParseCommand(PolyStack* stack){
             if(IsError(res_x) || !IsEnding(PeekChar())){
                 PrintError("WRONG VALUE");
                 ConsumeLine();
+                StringFree(&s);
                 return;
             }
             PopChar();//zjadamy koniec linii
@@ -326,6 +329,7 @@ void ParseCommand(PolyStack* stack){
         if(!IsEnding(PeekChar())){
             PrintError("WRONG COMMAND");
             ConsumeLine();
+            StringFree(&s);
             return;
         }
         PopChar();//zjadamy koniec linii
@@ -370,6 +374,7 @@ void ParseCommand(PolyStack* stack){
             PrintError("WRONG COMMAND");
         }
     }
+    StringFree(&s);
 }
 
 ParsingResult ParsePoly(){
