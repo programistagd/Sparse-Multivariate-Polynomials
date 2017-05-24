@@ -13,10 +13,12 @@
  * Punkt wejścia programu kalkulatora stosowego.
  * @return wynik działania (zawsze 0)
  */
-int main(){
+int main()
+{
     PolyStack stack = PolyStackEmpty();
     Initialize();
-    while(HasMoreLines()){
+    while (HasMoreLines())
+    {
         ParseLine(&stack);
     }
 

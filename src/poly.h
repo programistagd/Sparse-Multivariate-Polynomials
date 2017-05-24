@@ -34,7 +34,7 @@ typedef struct Poly
         poly_coeff_t coeff; ///< współczynnik (jeśli length == 0)
         Mono *monos;        ///< tablica jednomianów
     };
-    unsigned int length;    ///< ilość jednomianów (lub 0 gdy wielomian stały)
+    unsigned int length; ///< ilość jednomianów (lub 0 gdy wielomian stały)
 } Poly;
 
 /**
@@ -225,6 +225,6 @@ Poly PolyAt(const Poly *p, poly_coeff_t x);
  * Wypisywany wielomian ma postać pojedynczej liczby (gdy współczynnik) lub (p1,e1)+(p2,e2)+...+(pn,en) gdy złożony wielomian (gdzie p1 to zagnieżdżone wielomiany)
  * @param[in] p : wielomian
  */
-void PolyPrint(const Poly* p);
+void PolyPrint(const Poly *p);
 
 #endif /* __POLY_H__ */

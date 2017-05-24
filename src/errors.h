@@ -16,18 +16,23 @@
  * Może to być liczba różnego typu, wielomian lub błąd
  * Unia result trzyma wynik, którego typ jest określony przez enum type
  */
-typedef struct ParsingResult{
-    union{
-        poly_coeff_t coeff;///< wynik parsowania współczynnika
-        poly_exp_t exp;///< wynik parsowania wykładnika
-        unsigned int deg;///< wynik parsowania numeru zmiennej wielomianu
-        Poly poly;///< wynik parsowania wielomianu
-        struct{
-            unsigned int line;///< numer linii, w której nastąpił błąd
-            unsigned int column;;///< numer wiersza, który powoduje, że parsowane dane są nieprawidłowe
-        } error;///< opakowanie na błąd parsowania
-    } result;///< pojemnik na wynik
-    enum {
+typedef struct ParsingResult
+{
+    union
+    {
+        poly_coeff_t coeff; ///< wynik parsowania współczynnika
+        poly_exp_t exp;     ///< wynik parsowania wykładnika
+        unsigned int deg;   ///< wynik parsowania numeru zmiennej wielomianu
+        Poly poly;          ///< wynik parsowania wielomianu
+        struct
+        {
+            unsigned int line; ///< numer linii, w której nastąpił błąd
+            unsigned int column;
+            ;    ///< numer wiersza, który powoduje, że parsowane dane są nieprawidłowe
+        } error; ///< opakowanie na błąd parsowania
+    } result;    ///< pojemnik na wynik
+    enum
+    {
         PRT_ERROR,
         PRT_COEFF,
         PRT_EXP,
@@ -110,6 +115,5 @@ Poly UnpackPoly(ParsingResult r);
  * @param[in] r : wynik parsowania będący błędem
  */
 void PrintParsingError(ParsingResult r);
-
 
 #endif

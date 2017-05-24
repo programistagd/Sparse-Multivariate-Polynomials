@@ -14,10 +14,11 @@
 /**
  * Rozszerzalna tablica jednomianów
  */
-typedef struct Monos{
-    Mono* monos; ///< tablica jednomianów
+typedef struct Monos
+{
+    Mono *monos;         ///< tablica jednomianów
     unsigned int length; ///< ilość jednomianów
-    unsigned int cap; ///< ile jest zaalokowanego miejsca
+    unsigned int cap;    ///< ile jest zaalokowanego miejsca
 } Monos;
 
 /**
@@ -31,13 +32,13 @@ Monos MonosEmpty();
  * @param[in,out] r : tablica
  * @param[in] m : jednomian
  */
-void MonosAppend(Monos* r, Mono m);
+void MonosAppend(Monos *r, Mono m);
 
 /**
  * Zwalnia pamięć i niszczy jednomiany zawarte w tablicy.
  * @param[in,out] r : tablica
  */
-void MonosDestroy(Monos* r);
+void MonosDestroy(Monos *r);
 
 /**
  * Zamienia tablicę jednomianów w wielomian.
@@ -46,14 +47,15 @@ void MonosDestroy(Monos* r);
  * @param[in,out] m : tablica
  * @return wielomian
  */
-Poly MonosMergeIntoPoly(Monos* m);
+Poly MonosMergeIntoPoly(Monos *m);
 
 /**
  * Rozszerzalny łańcuch znaków
  */
-typedef struct String{
-    char* str; ///< łańcuch znaków
-    int length; ///< ilość użytych znaków
+typedef struct String
+{
+    char *str;    ///< łańcuch znaków
+    int length;   ///< ilość użytych znaków
     int capacity; ///< zaalokowane miejsce
 } String;
 
@@ -61,7 +63,7 @@ typedef struct String{
  * Zwalnia pamięć używaną przez łańcuch.
  * @param[in,out] s : łańuch
  */
-void StringDestroy(String* s);
+void StringDestroy(String *s);
 
 /**
  * Zwraca pusty łańcuch znaków.
@@ -74,21 +76,21 @@ String StringEmpty();
  * @param[in,out] s : łańcuch
  * @param[in] c : dopisywany znak
  */
-void StringAppend(String* s, char c);
+void StringAppend(String *s, char c);
 
 /**
  * Zwraca tymczasowy C-string równy łańcuchowi
  * @param[in] s : łańcuch
  * @return C-string
  */
-const char* StringCStr(String* s);
+const char *StringCStr(String *s);
 
 /**
  * Zwraca długość łańcucha
  * @param[in] s : łańcuch
  * @return długość
  */
-unsigned int StringLength(const String* s);
+unsigned int StringLength(const String *s);
 
 /**
  * Sprawdza czy zadany łańcuch jest równy zadanemu C-stringowi.
@@ -96,21 +98,22 @@ unsigned int StringLength(const String* s);
  * @param[in] c : C-string
  * @return true wtw. łańcuchy reprezentują ten sam tekst
  */
-bool StringCmp(const String* s, const char* c);
+bool StringCmp(const String *s, const char *c);
 
 /**
  * Zwalnia pamięć używaną przez łańcuch.
  * @param[in,out] s : łańcuch
  */
-void StringFree(String* s);
+void StringFree(String *s);
 
 /**
  * Stos wielomianów
  */
-typedef struct PolyStack{
-    Poly* polys; ///< tablica przechowująca wielomiany
+typedef struct PolyStack
+{
+    Poly *polys;         ///< tablica przechowująca wielomiany
     unsigned int length; ///< ilość wielomianów na stosie
-    unsigned int cap; ///< aktualna pojemność stosu 
+    unsigned int cap;    ///< aktualna pojemność stosu
 } PolyStack;
 
 /**
@@ -124,21 +127,21 @@ PolyStack PolyStackEmpty();
  * @param[in] stack : stos
  * @return liczba wielomianów
  */
-unsigned int PolyStackSize(const PolyStack* stack);
+unsigned int PolyStackSize(const PolyStack *stack);
 
 /**
  * Sprawdza czy stos jest pusty.
  * @param[in] stack : stos
  * @return true jeśli stos jest pusty
  */
-bool PolyStackIsEmpty(const PolyStack* stack);
+bool PolyStackIsEmpty(const PolyStack *stack);
 
 /**
  * Podgląda wielomian ze szczytu stosu
  * @param[in] stack : stos
  * @return wskaźnik na wielomian na szczycie stosu (tylko do odczytu)
  */
-const Poly* PolyStackPeek(PolyStack* stack);
+const Poly *PolyStackPeek(PolyStack *stack);
 
 /**
  * Usuwa wielomian ze szczytu stosu i zwraca go. 
@@ -146,7 +149,7 @@ const Poly* PolyStackPeek(PolyStack* stack);
  * @param[in,out] stack : stos
  * @return wielomian ze szczytu
  */
-Poly PolyStackPop(PolyStack* stack);
+Poly PolyStackPop(PolyStack *stack);
 
 /**
  * Wrzuca wielomian na stos. 
@@ -154,12 +157,12 @@ Poly PolyStackPop(PolyStack* stack);
  * @param[in,out] stack : stos
  * @param[in] p : wielomian
  */
-void PolyStackPush(PolyStack* stack, Poly p);
+void PolyStackPush(PolyStack *stack, Poly p);
 
 /**
  * Zwalnia pamięć użytą przez stos i niszczy pozostałe na nim wielomiany.
  * @param[in,out] stack : stos
  */
-void PolyStackDestroy(PolyStack* stack);
+void PolyStackDestroy(PolyStack *stack);
 
 #endif

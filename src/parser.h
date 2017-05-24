@@ -32,7 +32,7 @@ bool HasMoreLines();
  * Przetwarza jedną linijkę z wejścia i wykonuje na niej odpowiednie operacje związane ze stosem podanym w argumencie.
  * @param[in,out] stack : stos
  */
-void ParseLine(PolyStack* stack);
+void ParseLine(PolyStack *stack);
 
 /**
  * Zwraca numer aktualnie przetwarzanej linii.
@@ -51,7 +51,7 @@ unsigned int GetCurrentColumn();
  * Błąd postaci: ERROR {nr kolumny} {text}
  * @param[in] text : tekst błędu
  */
-void PrintError(const char* text);
+void PrintError(const char *text);
 
 /**
  * Sprawdza czy są jeszcze dane na wejściu.
@@ -145,6 +145,6 @@ ParsingResult ParsePoly();
  * Próbuje sparsować polecenie i wykonać je na podanym stosie.
  * @param[in] stack : stos
  */
-void ParseCommand(PolyStack* stack);
+void ParseCommand(PolyStack *stack);
 
 #endif

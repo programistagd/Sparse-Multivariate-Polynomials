@@ -17,43 +17,51 @@
 #include "dynamics.h"
 #include "errors.h"
 
-static bool initialized = false;///< czy została wykonana funkcja Initialize przygotowująca parser
-static char next = ' ';///< najbliższy znak przychodzący z stdin
-static int lineno;///< numer aktualnie przetwarzanego wiersza
-static int columnno;///< numer aktualnie przetwarzanej kolumny
+static bool initialized = false; ///< czy została wykonana funkcja Initialize przygotowująca parser
+static char next = ' ';          ///< najbliższy znak przychodzący z stdin
+static int lineno;               ///< numer aktualnie przetwarzanego wiersza
+static int columnno;             ///< numer aktualnie przetwarzanej kolumny
 
-unsigned int GetCurrentLine(){
+unsigned int GetCurrentLine()
+{
     return lineno + 1;
 }
 
-unsigned int GetCurrentColumn(){
+unsigned int GetCurrentColumn()
+{
     return columnno + 1;
 }
 
-bool EndOfStream(){
+bool EndOfStream()
+{
     assert(initialized);
     return PeekChar() == EOF;
 }
 
-void PopChar(){
-    if(!EndOfStream()){
+void PopChar()
+{
+    if (!EndOfStream())
+    {
         next = getchar();
         columnno += 1;
     }
 }
 
-char PeekChar(){
+char PeekChar()
+{
     assert(initialized);
     return next;
 }
 
-char GetChar(){
+char GetChar()
+{
     char c = PeekChar();
     PopChar();
     return c;
 }
 
-void Initialize(){
+void Initialize()
+{
     assert(!initialized);
     initialized = true;
     lineno = 0;
@@ -61,64 +69,81 @@ void Initialize(){
     next = getchar();
 }
 
-bool HasMoreLines(){
+bool HasMoreLines()
+{
     return !EndOfStream();
 }
 
-bool IsLetter(char c){
+bool IsLetter(char c)
+{
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-bool IsCommandLetter(char c){
+bool IsCommandLetter(char c)
+{
     return IsLetter(c) || c == '_';
 }
 
-bool IsDigit(char c){
+bool IsDigit(char c)
+{
     return c >= '0' && c <= '9';
 }
 
-bool IsEnding(char c){
+bool IsEnding(char c)
+{
     return c == '\n' || c == EOF;
 }
 
-void ConsumeLine(){
-    while(!IsEnding(PeekChar())){
+void ConsumeLine()
+{
+    while (!IsEnding(PeekChar()))
+    {
         PopChar();
     }
-    PopChar();//usuwamy \n
+    PopChar(); //usuwamy \n
 }
 
-ParsingResult ReadCoeff(){
+ParsingResult ReadCoeff()
+{
     poly_coeff_t x = 0;
     bool adding = true;
     int digits = 0;
 
-    if(PeekChar() == '-'){
+    if (PeekChar() == '-')
+    {
         PopChar();
         adding = false;
     }
 
-    while(IsDigit(PeekChar())){
+    while (IsDigit(PeekChar()))
+    {
         poly_coeff_t d = PeekChar() - '0';
-        
-        if(x > LONG_MAX / 10 || x < LONG_MIN / 10){
+
+        if (x > LONG_MAX / 10 || x < LONG_MIN / 10)
+        {
             return ParsingError();
         }
         x *= 10;
-        if(adding){
-            if(d > LONG_MAX - x){
+        if (adding)
+        {
+            if (d > LONG_MAX - x)
+            {
                 return ParsingError();
             }
-            else{
+            else
+            {
                 x += d;
             }
         }
-        else{
+        else
+        {
 
-            if(-d < LONG_MIN - x){
+            if (-d < LONG_MIN - x)
+            {
                 return ParsingError();
             }
-            else{
+            else
+            {
                 x -= d;
             }
         }
@@ -127,28 +152,34 @@ ParsingResult ReadCoeff(){
         digits++;
     }
 
-    if(digits == 0){
+    if (digits == 0)
+    {
         return ParsingError();
     }
 
     return PackCoeff(x);
 }
 
-ParsingResult ReadExp(){
+ParsingResult ReadExp()
+{
     poly_exp_t x = 0;
     int digits = 0;
 
-    while(IsDigit(PeekChar())){
+    while (IsDigit(PeekChar()))
+    {
         poly_exp_t d = PeekChar() - '0';
-        if(x > INT_MAX / 10){
+        if (x > INT_MAX / 10)
+        {
             return ParsingError();
         }
         x *= 10;
 
-        if(d > INT_MAX - x){
+        if (d > INT_MAX - x)
+        {
             return ParsingError();
         }
-        else{
+        else
+        {
             x += d;
         }
 
@@ -156,24 +187,29 @@ ParsingResult ReadExp(){
         digits++;
     }
 
-    if(digits == 0){
+    if (digits == 0)
+    {
         return ParsingError();
     }
 
     return PackExp(x);
 }
 
-ParsingResult ReadDeg(){
+ParsingResult ReadDeg()
+{
     unsigned int x = 0;
     int digits = 0;
 
-    while(IsDigit(PeekChar())){
+    while (IsDigit(PeekChar()))
+    {
         unsigned int d = PeekChar() - '0';
-        if(x > UINT_MAX / 10){
+        if (x > UINT_MAX / 10)
+        {
             return ParsingError();
         }
         x *= 10;
-        if(x + d < x){//jeśli suma jest mniejsza od samego wyrazu a dodajemy dodatnie to znaczy że był overflow i się zawinęło, czyli za duża liczba
+        if (x + d < x)
+        { //jeśli suma jest mniejsza od samego wyrazu a dodajemy dodatnie to znaczy że był overflow i się zawinęło, czyli za duża liczba
             return ParsingError();
         }
         x += d;
@@ -182,38 +218,46 @@ ParsingResult ReadDeg(){
         digits++;
     }
 
-    if(digits == 0){
+    if (digits == 0)
+    {
         return ParsingError();
     }
 
     return PackDeg(x);
 }
 
-ParsingResult ReadPoly(){
-    if(PeekChar() == '('){//jednomian lub suma jednomianów
+ParsingResult ReadPoly()
+{
+    if (PeekChar() == '(')
+    { //jednomian lub suma jednomianów
         Monos monos = MonosEmpty();
 
-        do{
-            if(PeekChar() == '+'){
+        do
+        {
+            if (PeekChar() == '+')
+            {
                 PopChar();
             }
 
-            if(PeekChar() != '('){
+            if (PeekChar() != '(')
+            {
                 MonosDestroy(&monos);
                 return ParsingError();
             }
             PopChar();
-            
+
             Mono inner;
             ParsingResult res_poly = ReadPoly();
-            if(IsError(res_poly)){
+            if (IsError(res_poly))
+            {
                 MonosDestroy(&monos);
                 return res_poly;
             }
 
             inner.p = UnpackPoly(res_poly);
 
-            if(PeekChar() != ','){
+            if (PeekChar() != ',')
+            {
                 PolyDestroy(&inner.p);
                 MonosDestroy(&monos);
                 return ParsingError();
@@ -221,7 +265,8 @@ ParsingResult ReadPoly(){
             PopChar();
 
             ParsingResult res_exp = ReadExp();
-            if(IsError(res_exp)){
+            if (IsError(res_exp))
+            {
                 PolyDestroy(&inner.p);
                 MonosDestroy(&monos);
                 return res_exp;
@@ -229,23 +274,25 @@ ParsingResult ReadPoly(){
 
             inner.exp = UnpackExp(res_exp);
 
-            MonosAppend(&monos, inner);//dodajemy wielomian do "listy"
+            MonosAppend(&monos, inner); //dodajemy wielomian do "listy"
 
-            if(PeekChar() != ')'){
+            if (PeekChar() != ')')
+            {
                 MonosDestroy(&monos);
                 return ParsingError();
             }
             PopChar();
 
-        }
-        while(PeekChar() == '+');
+        } while (PeekChar() == '+');
 
         return PackPoly(MonosMergeIntoPoly(&monos));
     }
-    else{
+    else
+    {
         ParsingResult res_coeff = ReadCoeff();
-        
-        if(IsError(res_coeff)){
+
+        if (IsError(res_coeff))
+        {
             return res_coeff;
         }
 
@@ -255,116 +302,144 @@ ParsingResult ReadPoly(){
     }
 }
 
-void PrintError(const char* text){
-    fprintf(stderr, "ERROR %d %s\n", lineno+1, text);
+void PrintError(const char *text)
+{
+    fprintf(stderr, "ERROR %d %s\n", lineno + 1, text);
 }
 
-void ParseCommand(PolyStack* stack){
+void ParseCommand(PolyStack *stack)
+{
     const unsigned int longest_command_name = 8;
 
     String s = StringEmpty();
-    while(IsCommandLetter(PeekChar()) && StringLength(&s) < longest_command_name){
+    while (IsCommandLetter(PeekChar()) && StringLength(&s) < longest_command_name)
+    {
         StringAppend(&s, GetChar());
     }
-    
-    if(StringCmp(&s, "DEG_BY") || StringCmp(&s, "AT")){
-        if(PeekChar() != ' '){
+
+    if (StringCmp(&s, "DEG_BY") || StringCmp(&s, "AT"))
+    {
+        if (PeekChar() != ' ')
+        {
             PrintError("WRONG COMMAND");
             ConsumeLine();
             StringFree(&s);
             return;
         }
-        PopChar();//zjadamy spację
+        PopChar(); //zjadamy spację
 
-        if(StringCmp(&s, "DEG_BY")){
+        if (StringCmp(&s, "DEG_BY"))
+        {
             ParsingResult res_idx = ReadDeg();
-            
-            if(IsError(res_idx) || !IsEnding(PeekChar())){
+
+            if (IsError(res_idx) || !IsEnding(PeekChar()))
+            {
                 PrintError("WRONG VARIABLE");
                 ConsumeLine();
                 StringFree(&s);
                 return;
             }
-            PopChar();//zjadamy koniec linii
-            
+            PopChar(); //zjadamy koniec linii
+
             unsigned int idx = UnpackDeg(res_idx);
             CalcDegBy(stack, idx);
         }
-        else if(StringCmp(&s, "AT")){
+        else if (StringCmp(&s, "AT"))
+        {
             ParsingResult res_x = ReadCoeff();
 
-            if(IsError(res_x) || !IsEnding(PeekChar())){
+            if (IsError(res_x) || !IsEnding(PeekChar()))
+            {
                 PrintError("WRONG VALUE");
                 ConsumeLine();
                 StringFree(&s);
                 return;
             }
-            PopChar();//zjadamy koniec linii
-            
+            PopChar(); //zjadamy koniec linii
+
             poly_coeff_t x = UnpackCoeff(res_x);
             CalcAt(stack, x);
         }
     }
-    else{
-        if(!IsEnding(PeekChar())){
+    else
+    {
+        if (!IsEnding(PeekChar()))
+        {
             PrintError("WRONG COMMAND");
             ConsumeLine();
             StringFree(&s);
             return;
         }
-        PopChar();//zjadamy koniec linii
+        PopChar(); //zjadamy koniec linii
 
-        if(StringCmp(&s, "ZERO")){
+        if (StringCmp(&s, "ZERO"))
+        {
             CalcZero(stack);
         }
-        else if(StringCmp(&s, "IS_COEFF")){
+        else if (StringCmp(&s, "IS_COEFF"))
+        {
             CalcIsCoeff(stack);
         }
-        else if(StringCmp(&s, "IS_ZERO")){
+        else if (StringCmp(&s, "IS_ZERO"))
+        {
             CalcIsZero(stack);
         }
-        else if(StringCmp(&s, "CLONE")){
+        else if (StringCmp(&s, "CLONE"))
+        {
             CalcClone(stack);
         }
-        else if(StringCmp(&s, "ADD")){
+        else if (StringCmp(&s, "ADD"))
+        {
             CalcAdd(stack);
         }
-        else if(StringCmp(&s, "MUL")){
+        else if (StringCmp(&s, "MUL"))
+        {
             CalcMul(stack);
         }
-        else if(StringCmp(&s, "NEG")){
+        else if (StringCmp(&s, "NEG"))
+        {
             CalcNeg(stack);
         }
-        else if(StringCmp(&s, "SUB")){
+        else if (StringCmp(&s, "SUB"))
+        {
             CalcSub(stack);
         }
-        else if(StringCmp(&s, "IS_EQ")){
+        else if (StringCmp(&s, "IS_EQ"))
+        {
             CalcIsEq(stack);
         }
-        else if(StringCmp(&s, "DEG")){
+        else if (StringCmp(&s, "DEG"))
+        {
             CalcDeg(stack);
         }
-        else if(StringCmp(&s, "PRINT")){
+        else if (StringCmp(&s, "PRINT"))
+        {
             CalcPrint(stack);
         }
-        else if(StringCmp(&s, "POP")){
+        else if (StringCmp(&s, "POP"))
+        {
             CalcPop(stack);
         }
-        else{
+        else
+        {
             PrintError("WRONG COMMAND");
         }
     }
     StringFree(&s);
 }
 
-ParsingResult ParsePoly(){
+ParsingResult ParsePoly()
+{
     ParsingResult res_poly = ReadPoly();
-    
-    if(IsError(res_poly)){
+
+    if (IsError(res_poly))
+    {
         return res_poly;
     }
-    else{
-        if(!IsEnding(PeekChar())){//na sam koniec upewnijmy się że jest znak nowej linii / eof
+    else
+    {
+        if (!IsEnding(PeekChar()))
+        { //na sam koniec upewnijmy się że jest znak nowej linii / eof
             Poly p = UnpackPoly(res_poly);
             PolyDestroy(&p);
             return ParsingError();
@@ -374,19 +449,24 @@ ParsingResult ParsePoly(){
     }
 }
 
-void ParseLine(PolyStack* stack){
+void ParseLine(PolyStack *stack)
+{
     char first = PeekChar();
     //printf("{%c}\n",first);
-    if(IsLetter(first)){
+    if (IsLetter(first))
+    {
         ParseCommand(stack);
     }
-    else{
+    else
+    {
         ParsingResult res_poly = ParsePoly();
-        if(IsError(res_poly)){
+        if (IsError(res_poly))
+        {
             PrintParsingError(res_poly);
             ConsumeLine();
         }
-        else{
+        else
+        {
             Poly p = UnpackPoly(res_poly);
             CalcPush(stack, p);
         }

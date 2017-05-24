@@ -570,11 +570,13 @@ bool PolyIsEq(const Poly *p, const Poly *q)
 static poly_coeff_t Exp(poly_coeff_t x, poly_exp_t k)
 {
     poly_coeff_t r = 1;
-    while (k > 0){
-        if(k % 2 == 1){
+    while (k > 0)
+    {
+        if (k % 2 == 1)
+        {
             r *= x;
         }
-        x = x*x;
+        x = x * x;
         k /= 2;
     }
     return r;
@@ -613,13 +615,18 @@ Poly PolyAt(const Poly *p, poly_coeff_t x)
     return r;
 }
 
-void PolyPrint(const Poly* p){
-    if(PolyIsCoeff(p)){
+void PolyPrint(const Poly *p)
+{
+    if (PolyIsCoeff(p))
+    {
         printf("%ld", p->coeff);
     }
-    else{
-        for(unsigned int i = 0; i < p->length; ++i){
-            if(i > 0){
+    else
+    {
+        for (unsigned int i = 0; i < p->length; ++i)
+        {
+            if (i > 0)
+            {
                 printf("+");
             }
             printf("(");
