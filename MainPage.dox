@@ -4,10 +4,10 @@
 ### Treść zadania
 
 Uwaga: aktualna treść zadania znajduje się w [Moodle'u](https://moodle.mimuw.edu.pl).
+Autor tej implementacji: Radosław Waśko (nr indeksu 386491)
 
 ### Opis projektu
 
-Tegoroczne duże zadanie polega na zaimplementowaniu operacji na wielomianach
-rzadkich wielu zmiennych.
+Kalkulator stosowy implementujący operacje na wielomianach wielu zmiennych.
 
 */

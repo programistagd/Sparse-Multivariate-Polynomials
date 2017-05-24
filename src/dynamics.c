@@ -1,3 +1,11 @@
+/** @file
+   Implementacja dynamicznych struktur danych
+
+   @author Radosław Waśko <rw386491@students.mimuw.edu.pl>
+   @copyright Uniwersytet Warszawski
+   @date 2017-05-20
+*/
+
 #include "dynamics.h"
 #include <stdlib.h>
 #include <string.h>
