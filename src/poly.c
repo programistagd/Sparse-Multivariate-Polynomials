@@ -664,11 +664,6 @@ static void UpdateExp(Poly* p, const Poly* x, unsigned int prevexp, unsigned int
     }
 }
 
-void PolyLiftVariables(Poly *p){
-    Mono m = MonoFromPoly(p,0);
-    *p = PolyAddMonos(1, &m);
-}
-
 Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]){
     if(PolyIsCoeff(p)){
         return PolyClone(p);//w sumie nie trzeba klonować ale na wypadek np. zmiany implementacji?
@@ -694,7 +689,7 @@ Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]){
         prevexp = p->monos[i].exp;
         
         Poly rec = PolyCompose(&p->monos[i].p, count - 1, x + 1);
-        PolyLiftVariables(&rec);
+
         Poly ri = PolyMul(&rec, &q0i);
         PolyDestroy(&rec);
 
