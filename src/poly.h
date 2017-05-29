@@ -227,4 +227,8 @@ Poly PolyAt(const Poly *p, poly_coeff_t x);
  */
 void PolyPrint(const Poly *p);
 
+Poly PolyExp(const Poly* p, unsigned int k);
+
+Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]);
+
 #endif /* __POLY_H__ */

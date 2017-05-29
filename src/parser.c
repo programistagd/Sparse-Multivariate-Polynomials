@@ -195,7 +195,7 @@ ParsingResult ReadExp()
     return PackExp(x);
 }
 
-ParsingResult ReadDeg()
+ParsingResult ReadVar()
 {
     unsigned int x = 0;
     int digits = 0;
@@ -223,7 +223,7 @@ ParsingResult ReadDeg()
         return ParsingError();
     }
 
-    return PackDeg(x);
+    return PackVar(x);
 }
 
 ParsingResult ReadPoly()
@@ -317,7 +317,7 @@ void ParseCommand(PolyStack *stack)
         StringAppend(&s, GetChar());
     }
 
-    if (StringCmp(&s, "DEG_BY") || StringCmp(&s, "AT"))
+    if (StringCmp(&s, "DEG_BY") || StringCmp(&s, "AT") || StringCmp(&s, "COMPOSE"))
     {
         if (PeekChar() != ' ')
         {
@@ -330,7 +330,7 @@ void ParseCommand(PolyStack *stack)
 
         if (StringCmp(&s, "DEG_BY"))
         {
-            ParsingResult res_idx = ReadDeg();
+            ParsingResult res_idx = ReadVar();
 
             if (IsError(res_idx) || !IsEnding(PeekChar()))
             {
@@ -341,8 +341,24 @@ void ParseCommand(PolyStack *stack)
             }
             PopChar(); //zjadamy koniec linii
 
-            unsigned int idx = UnpackDeg(res_idx);
+            unsigned int idx = UnpackVar(res_idx);
             CalcDegBy(stack, idx);
+        }
+        else if (StringCmp(&s, "COMPOSE"))
+        {
+            ParsingResult res_count = ReadVar();
+
+            if (IsError(res_count) || !IsEnding(PeekChar()))
+            {
+                PrintError("WRONG COUNT");
+                ConsumeLine();
+                StringFree(&s);
+                return;
+            }
+            PopChar(); //zjadamy koniec linii
+
+            unsigned int count = UnpackVar(res_count);
+            CalcCompose(stack, count);
         }
         else if (StringCmp(&s, "AT"))
         {

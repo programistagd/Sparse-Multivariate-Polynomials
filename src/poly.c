@@ -635,3 +635,73 @@ void PolyPrint(const Poly *p)
         }
     }
 }
+
+Poly PolyExp(const Poly* p, unsigned int k){
+    Poly x = PolyClone(p);
+    Poly res = PolyFromCoeff(1);
+    while (k > 0)
+    {
+        if (k % 2 == 1)
+        {
+            Poly n = PolyMul(&res, &x);
+            PolyDestroy(&res);
+            res = n;
+        }
+        Poly n = PolyMul(&x, &x);
+        PolyDestroy(&x);
+        x = n;
+        k /= 2;
+    }
+    return res;
+}
+
+static void UpdateExp(Poly* p, const Poly* x, unsigned int prevexp, unsigned int exp){
+    if(prevexp != exp){
+        Poly diff = PolyExp(x, exp-prevexp);
+        Poly res = PolyMul(p, &diff);
+        PolyDestroy(p);
+        *p = res;
+    }
+}
+
+void PolyLiftVariables(Poly *p){
+    Mono m = MonoFromPoly(p,0);
+    *p = PolyAddMonos(1, &m);
+}
+
+Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]){
+    if(PolyIsCoeff(p)){
+        return PolyClone(p);//w sumie nie trzeba klonować ale na wypadek np. zmiany implementacji?
+    }
+
+    if(count == 0){
+        //wszystkie zmienne się zerują, więc zwracamy tylko współczynnik używamy PolyCompose rekurencyjnie dla ułatwienia
+        if(p->monos[0].exp == 0){
+            return PolyCompose(&p->monos[0].p, 0, NULL);
+        }
+        else{ //jednomiany są posortowane rosnącymi wykładnikami, jeśli pierwszy nie miał wykładnika 0, to inne też nie, więc wszędzie jest zmienna, czyli po podstawieniu 0 się wszystko zeruje
+            return PolyZero();
+        }
+    }
+
+    Poly res = PolyZero();
+
+    Poly q0i = PolyFromCoeff(1);
+    unsigned int prevexp = 0;
+
+    for(unsigned int i = 0; i < p->length; ++i){
+        UpdateExp(&q0i, &x[0], prevexp, p->monos[i].exp);
+        prevexp = p->monos[i].exp;
+        
+        Poly rec = PolyCompose(&p->monos[i].p, count - 1, x + 1);
+        PolyLiftVariables(&rec);
+        Poly ri = PolyMul(&rec, &q0i);
+        PolyDestroy(&rec);
+
+        Poly sum = PolyAdd(&res, &ri);
+        PolyDestroy(&res);
+        res = sum;
+    }
+
+    return res;
+}

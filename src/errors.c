@@ -54,18 +54,18 @@ poly_exp_t UnpackExp(ParsingResult r)
     return r.result.exp;
 }
 
-ParsingResult PackDeg(unsigned int x)
+ParsingResult PackVar(unsigned int x)
 {
     ParsingResult r;
-    r.type = PRT_DEG;
-    r.result.deg = x;
+    r.type = PRT_VAR;
+    r.result.var = x;
     return r;
 }
 
-unsigned int UnpackDeg(ParsingResult r)
+unsigned int UnpackVar(ParsingResult r)
 {
-    assert(r.type == PRT_DEG);
-    return r.result.deg;
+    assert(r.type == PRT_VAR);
+    return r.result.var;
 }
 
 ParsingResult PackPoly(Poly p)

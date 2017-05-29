@@ -22,7 +22,7 @@ typedef struct ParsingResult
     {
         poly_coeff_t coeff; ///< wynik parsowania współczynnika
         poly_exp_t exp;     ///< wynik parsowania wykładnika
-        unsigned int deg;   ///< wynik parsowania numeru zmiennej wielomianu
+        unsigned int var;   ///< wynik parsowania numeru zmiennej wielomianu
         Poly poly;          ///< wynik parsowania wielomianu
         struct
         {
@@ -36,7 +36,7 @@ typedef struct ParsingResult
         PRT_ERROR,
         PRT_COEFF,
         PRT_EXP,
-        PRT_DEG,
+        PRT_VAR,
         PRT_POLY
     } type; ///< rodzaj trzymanego wyniku
 } ParsingResult;
@@ -87,14 +87,14 @@ poly_exp_t UnpackExp(ParsingResult r);
  * @param[in] x : numer zmiennej
  * @return wynik parsowania
  */
-ParsingResult PackDeg(unsigned int x);
+ParsingResult PackVar(unsigned int x);
 
 /**
  * Wyłuskuje z wyniku numer zmiennej.
  * @param[in] r : wynik parsowania będący numerem zmiennej
  * @return numer zmiennej
  */
-unsigned int UnpackDeg(ParsingResult r);
+unsigned int UnpackVar(ParsingResult r);
 
 /**
  * Tworzy wynik parsowania będący wielomianem (i przejmuje go na własność).

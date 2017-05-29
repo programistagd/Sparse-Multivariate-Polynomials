@@ -81,6 +81,8 @@ void CalcDeg(PolyStack *stack);
  */
 void CalcDegBy(PolyStack *stack, unsigned int idx);
 
+void CalcCompose(PolyStack *stack, unsigned int count);
+
 /**
  * Zdejmuje wielomian ze szczytu stosu, oblicza jego wartość w punkcie x i wrzuca wynik na stos.
  * @param[in,out] stack : stos
