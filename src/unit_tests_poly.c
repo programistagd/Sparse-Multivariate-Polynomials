@@ -22,6 +22,9 @@
 #include <stdarg.h>
 #include <string.h>
 #include <setjmp.h>
+
+#include "poly.h"
+
 #include "cmocka.h"
 
 #define array_length(x) (sizeof(x) / sizeof((x)[0]))
@@ -131,15 +134,140 @@ static void init_input_stream(const char *str) {
     strcpy(input_stream_buffer, str);
 }
 
+
+static void test_poly_zero_count_zero(void **state) {
+    (void)state;
+
+    Poly p = PolyZero();
+    Poly r = PolyCompose(&p, 0, NULL);
+
+    //expect: 0
+    assert_true(PolyIsZero(&r));
+    
+    PolyDestroy(&p);
+    PolyDestroy(&r);
+}
+
+static void test_poly_zero_coeff(void **state) {
+    (void)state;
+
+    Poly p = PolyZero();
+    Poly x[1] = { PolyFromCoeff(5) };
+    Poly r = PolyCompose(&p, 1, x);
+    
+    //expect: 0
+    assert_true(PolyIsZero(&r));
+    
+    for(unsigned int i = 0; i < array_length(x); ++i){
+        PolyDestroy(&x[i]);
+    }
+    PolyDestroy(&p);
+    PolyDestroy(&r);
+}
+
+static void test_coeff_count_zero(void **state) {
+    (void)state;
+
+    Poly p = PolyFromCoeff(7);
+    Poly r = PolyCompose(&p, 0, NULL);
+    
+    //expect: 7
+    assert_true(PolyIsCoeff(&r));
+    assert_true(PolyIsEq(&r, &p));
+    
+    PolyDestroy(&p);
+    PolyDestroy(&r);
+}
+
+static void test_coeff_coeff(void **state) {
+    (void)state;
+
+    Poly p = PolyFromCoeff(7);
+    Poly x[1] = { PolyFromCoeff(5) };
+    Poly r = PolyCompose(&p, 1, x);
+    
+    //expect: 7
+    assert_true(PolyIsCoeff(&r));
+    assert_true(PolyIsEq(&r, &p));
+    
+    for(unsigned int i = 0; i < array_length(x); ++i){
+        PolyDestroy(&x[i]);
+    }
+    PolyDestroy(&p);
+    PolyDestroy(&r);
+}
+
+static Poly makex0(){
+    Poly one = PolyFromCoeff(1);
+    Mono m = MonoFromPoly(&one, 1);
+    return PolyAddMonos(1, &m);
+}
+
+static void test_x0_count_zero(void **state) {
+    (void)state;
+
+    Poly p = makex0();
+    Poly r = PolyCompose(&p, 0, NULL);
+    
+    //expect: 0
+    assert_true(PolyIsZero(&r));
+    
+    PolyDestroy(&p);
+    PolyDestroy(&r);
+}
+
+static void test_x0_coeff(void **state) {
+    (void)state;
+
+    Poly p = makex0();
+    Poly x[1] = { PolyFromCoeff(5) };
+    Poly r = PolyCompose(&p, 1, x);
+    
+    //expect: 5
+    assert_true(PolyIsCoeff(&r));
+    assert_true(PolyIsEq(&r, &x[0]));
+    
+    for(unsigned int i = 0; i < array_length(x); ++i){
+        PolyDestroy(&x[i]);
+    }
+    PolyDestroy(&p);
+    PolyDestroy(&r);
+}
+
+static void test_x0_x0(void **state) {
+    (void)state;
+
+    Poly p = makex0();
+    Poly x[1] = { makex0() };
+    Poly r = PolyCompose(&p, 1, x);
+    
+    //expect: x
+    assert_true(!PolyIsCoeff(&r));
+    assert_true(PolyIsEq(&r, &p));
+    
+    for(unsigned int i = 0; i < array_length(x); ++i){
+        PolyDestroy(&x[i]);
+    }
+    PolyDestroy(&p);
+    PolyDestroy(&r);
+}
+
 int main(void) {
     const struct CMUnitTest compose_function_tests[] = {
-        //cmocka_unit_test(test_add),
+        cmocka_unit_test(test_poly_zero_count_zero),
+        cmocka_unit_test(test_poly_zero_coeff),
+        cmocka_unit_test(test_coeff_count_zero),
+        cmocka_unit_test(test_coeff_coeff),
+        cmocka_unit_test(test_x0_count_zero),
+        cmocka_unit_test(test_x0_coeff),
+        cmocka_unit_test(test_x0_x0),
         //cmocka_unit_test_setup(test_perform_operation_first_arg_not_integer, test_setup),
     };
     const struct CMUnitTest compose_parse_tests[] = {
         //cmocka_unit_test(test_add),
         //cmocka_unit_test_setup(test_perform_operation_first_arg_not_integer, test_setup),
     };
+
     return cmocka_run_group_tests(compose_function_tests, NULL, NULL)
-        && cmocka_run_group_tests(compose_parse_tests, NULL, NULL);
+        +  cmocka_run_group_tests(compose_parse_tests, NULL, NULL);
 }
