@@ -64,7 +64,6 @@ char GetChar()
 
 void Initialize()
 {
-    assert(!initialized);
     initialized = true;
     lineno = 0;
     columnno = 0;

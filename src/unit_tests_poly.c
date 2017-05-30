@@ -252,6 +252,78 @@ static void test_x0_x0(void **state) {
     PolyDestroy(&r);
 }
 
+static void test_no_param(void **state){
+    (void)state;
+
+    init_input_stream("COMPOSE ");
+    assert_int_equal(calculator_main(0, NULL), 0);
+    assert_string_equal(printf_buffer, "");
+    assert_string_equal(fprintf_buffer, "ERROR 1 WRONG COUNT\n");
+}
+
+static void test_min_count(void **state){
+    (void)state;
+
+    init_input_stream("0\nCOMPOSE 0\n");
+    assert_int_equal(calculator_main(0, NULL), 0);
+    assert_string_equal(printf_buffer, "");
+    assert_string_equal(fprintf_buffer, "");
+}
+
+static void test_max_count(void **state){
+    (void)state;
+
+    init_input_stream("COMPOSE 4294967295\n");
+    assert_int_equal(calculator_main(0, NULL), 0);
+    assert_string_equal(printf_buffer, "");
+    assert_string_equal(fprintf_buffer, "ERROR 1 STACK UNDERFLOW\n");
+}
+
+static void test_negative_count(void **state){
+    (void)state;
+
+    init_input_stream("COMPOSE -1\n");
+    assert_int_equal(calculator_main(0, NULL), 0);
+    assert_string_equal(printf_buffer, "");
+    assert_string_equal(fprintf_buffer, "ERROR 1 WRONG COUNT\n");
+}
+
+static void test_slightly_too_big_count(void **state){
+    (void)state;
+
+    init_input_stream("COMPOSE 4294967296\n");
+    assert_int_equal(calculator_main(0, NULL), 0);
+    assert_string_equal(printf_buffer, "");
+    assert_string_equal(fprintf_buffer, "ERROR 1 WRONG COUNT\n");
+}
+
+static void test_far_too_big_count(void **state){
+    (void)state;
+
+    init_input_stream("COMPOSE 99999999999999999999999\n");
+    assert_int_equal(calculator_main(0, NULL), 0);
+    assert_string_equal(printf_buffer, "");
+    assert_string_equal(fprintf_buffer, "ERROR 1 WRONG COUNT\n");
+}
+
+static void test_letters_as_count(void **state){
+    (void)state;
+
+    init_input_stream("COMPOSE fooBAR\n");
+    assert_int_equal(calculator_main(0, NULL), 0);
+    assert_string_equal(printf_buffer, "");
+    assert_string_equal(fprintf_buffer, "ERROR 1 WRONG COUNT\n");
+}
+
+static void test_mixed_letters_and_digits_as_count(void **state){
+    (void)state;
+
+    init_input_stream("COMPOSE 1FooBar\n");
+    assert_int_equal(calculator_main(0, NULL), 0);
+    assert_string_equal(printf_buffer, "");
+    assert_string_equal(fprintf_buffer, "ERROR 1 WRONG COUNT\n");
+}
+
 int main(void) {
     const struct CMUnitTest compose_function_tests[] = {
         cmocka_unit_test(test_poly_zero_count_zero),
@@ -261,11 +333,16 @@ int main(void) {
         cmocka_unit_test(test_x0_count_zero),
         cmocka_unit_test(test_x0_coeff),
         cmocka_unit_test(test_x0_x0),
-        //cmocka_unit_test_setup(test_perform_operation_first_arg_not_integer, test_setup),
     };
     const struct CMUnitTest compose_parse_tests[] = {
-        //cmocka_unit_test(test_add),
-        //cmocka_unit_test_setup(test_perform_operation_first_arg_not_integer, test_setup),
+        cmocka_unit_test_setup(test_no_param, test_setup),
+        cmocka_unit_test_setup(test_min_count, test_setup),
+        cmocka_unit_test_setup(test_max_count, test_setup),
+        cmocka_unit_test_setup(test_negative_count, test_setup),
+        cmocka_unit_test_setup(test_slightly_too_big_count, test_setup),
+        cmocka_unit_test_setup(test_far_too_big_count, test_setup),
+        cmocka_unit_test_setup(test_letters_as_count, test_setup),
+        cmocka_unit_test_setup(test_mixed_letters_and_digits_as_count, test_setup),
     };
 
     return cmocka_run_group_tests(compose_function_tests, NULL, NULL)
