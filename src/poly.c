@@ -639,8 +639,12 @@ void PolyPrint(const Poly *p)
 }
 
 Poly PolyExp(const Poly* p, unsigned int k){
-    Poly x = PolyClone(p);
     Poly res = PolyFromCoeff(1);
+    if(k == 0){
+        return res;
+    }
+
+    Poly x = PolyClone(p);
     while (k > 0)
     {
         if (k % 2 == 1)
@@ -654,14 +658,17 @@ Poly PolyExp(const Poly* p, unsigned int k){
         x = n;
         k /= 2;
     }
+
+    PolyDestroy(&x);
     return res;
 }
 
 static void UpdateExp(Poly* p, const Poly* x, unsigned int prevexp, unsigned int exp){
     if(prevexp != exp){
-        Poly diff = PolyExp(x, exp-prevexp);
+        Poly diff = PolyExp(x, exp - prevexp);
         Poly res = PolyMul(p, &diff);
         PolyDestroy(p);
+        PolyDestroy(&diff);
         *p = res;
     }
 }
@@ -696,9 +703,11 @@ Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]){
         PolyDestroy(&rec);
 
         Poly sum = PolyAdd(&res, &ri);
+        PolyDestroy(&ri);
         PolyDestroy(&res);
         res = sum;
     }
 
+    PolyDestroy(&q0i);
     return res;
 }

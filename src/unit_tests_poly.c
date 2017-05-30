@@ -334,6 +334,7 @@ int main(void) {
         cmocka_unit_test(test_x0_coeff),
         cmocka_unit_test(test_x0_x0),
     };
+    
     const struct CMUnitTest compose_parse_tests[] = {
         cmocka_unit_test_setup(test_no_param, test_setup),
         cmocka_unit_test_setup(test_min_count, test_setup),
