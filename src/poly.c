@@ -11,6 +11,8 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include "utils.h"
+
 void PolyDestroy(Poly *p)
 {
     if (p->length != 0)

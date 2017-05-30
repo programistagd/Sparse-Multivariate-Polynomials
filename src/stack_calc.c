@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "utils.h"
+
 /**
  * Upewnia się, że na stosie jest wystarczająco dużo wielomianów i w przypadku gdy ich brakuje wypisuje odpowiedni błąd na stderr.
  * @param[in,out] stack : stos

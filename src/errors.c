@@ -12,6 +12,8 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include "utils.h"
+
 ParsingResult ParsingError()
 {
     ParsingResult r;

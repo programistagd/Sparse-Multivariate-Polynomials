@@ -17,6 +17,8 @@
 #include "dynamics.h"
 #include "errors.h"
 
+#include "utils.h"
+
 static bool initialized = false; ///< czy została wykonana funkcja Initialize przygotowująca parser
 static char next = ' ';          ///< najbliższy znak przychodzący z stdin
 static int lineno;               ///< numer aktualnie przetwarzanego wiersza
