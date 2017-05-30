@@ -638,12 +638,19 @@ void PolyPrint(const Poly *p)
     }
 }
 
-Poly PolyExp(const Poly* p, unsigned int k){
-    Poly res = PolyFromCoeff(1);
-    if(k == 0){
-        return res;
+Poly PolyExp(const Poly *p, unsigned int k)
+{
+    if (k == 0)
+    {
+        return PolyFromCoeff(1);
     }
 
+    if (k == 1)
+    {
+        return PolyClone(p);
+    }
+
+    Poly res = PolyFromCoeff(1);
     Poly x = PolyClone(p);
     while (k > 0)
     {
@@ -663,8 +670,17 @@ Poly PolyExp(const Poly* p, unsigned int k){
     return res;
 }
 
-static void UpdateExp(Poly* p, const Poly* x, unsigned int prevexp, unsigned int exp){
-    if(prevexp != exp){
+/**
+ * Aktualizuje wykładnik wielomianu `p` do `exp`.
+ * @param[in,out] p : wielomian do zaktualizowania, warunek początkowy: `p = x ^ prevexp`, warunek końcowy: `p = x ^ exp`
+ * @param[in] x : podstawa potęgowania
+ * @param[in] prevexp : poprzedni wykładnik
+ * @param[in] exp : nowy wykładnik
+ */
+static void UpdateExp(Poly *p, const Poly *x, unsigned int prevexp, unsigned int exp)
+{
+    if (prevexp != exp)
+    {
         Poly diff = PolyExp(x, exp - prevexp);
         Poly res = PolyMul(p, &diff);
         PolyDestroy(p);
@@ -673,17 +689,22 @@ static void UpdateExp(Poly* p, const Poly* x, unsigned int prevexp, unsigned int
     }
 }
 
-Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]){
-    if(PolyIsCoeff(p)){
-        return PolyClone(p);//w sumie nie trzeba klonować ale na wypadek np. zmiany implementacji?
+Poly PolyCompose(const Poly *p, unsigned count, const Poly x[])
+{
+    if (PolyIsCoeff(p))
+    {
+        return PolyClone(p); //w sumie nie trzeba klonować ale na wypadek np. zmiany implementacji?
     }
 
-    if(count == 0){
+    if (count == 0)
+    {
         //wszystkie zmienne się zerują, więc zwracamy tylko współczynnik używamy PolyCompose rekurencyjnie dla ułatwienia
-        if(p->monos[0].exp == 0){
+        if (p->monos[0].exp == 0)
+        {
             return PolyCompose(&p->monos[0].p, 0, NULL);
         }
-        else{ //jednomiany są posortowane rosnącymi wykładnikami, jeśli pierwszy nie miał wykładnika 0, to inne też nie, więc wszędzie jest zmienna, czyli po podstawieniu 0 się wszystko zeruje
+        else
+        { //jednomiany są posortowane rosnącymi wykładnikami, jeśli pierwszy nie miał wykładnika 0, to inne też nie, więc wszędzie jest zmienna, czyli po podstawieniu 0 się wszystko zeruje
             return PolyZero();
         }
     }
@@ -693,10 +714,11 @@ Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]){
     Poly q0i = PolyFromCoeff(1);
     unsigned int prevexp = 0;
 
-    for(unsigned int i = 0; i < p->length; ++i){
+    for (unsigned int i = 0; i < p->length; ++i)
+    {
         UpdateExp(&q0i, &x[0], prevexp, p->monos[i].exp);
         prevexp = p->monos[i].exp;
-        
+
         Poly rec = PolyCompose(&p->monos[i].p, count - 1, x + 1);
 
         Poly ri = PolyMul(&rec, &q0i);

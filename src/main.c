@@ -17,6 +17,9 @@
  */
 int main(int argc, char *argv[])
 {
+    (void)argc;//nie używamy argumentów z linii poleceń, więc nie chemy warningów o nieużywanym argumencie
+    (void)argv;
+
     PolyStack stack = PolyStackEmpty();
     Initialize();
     while (HasMoreLines())

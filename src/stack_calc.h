@@ -81,6 +81,11 @@ void CalcDeg(PolyStack *stack);
  */
 void CalcDegBy(PolyStack *stack, unsigned int idx);
 
+/**
+ * Zdejmuje ze stosu wielomian p, a następnie x[0], x[1], ..., x[count - 1] i podstawia pod kolejne zmienne p wielomiany z x
+ * @param[in,out] stack : stos
+ * @param[in] count : liczba wielomianów, które będziemy podstawiać
+ */
 void CalcCompose(PolyStack *stack, unsigned int count);
 
 /**

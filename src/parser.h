@@ -126,7 +126,7 @@ ParsingResult ReadExp();
  * Próbuje sparsować numer zmiennej.
  * @return wynik parsowania będący numerem zmiennej lub błędem parsowania.
  */
-ParsingResult ReadDeg();
+ParsingResult ReadVar();
 
 /**
  * Próbuje sparsować pojedynczy wielomian.

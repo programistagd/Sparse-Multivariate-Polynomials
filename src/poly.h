@@ -227,8 +227,21 @@ Poly PolyAt(const Poly *p, poly_coeff_t x);
  */
 void PolyPrint(const Poly *p);
 
-Poly PolyExp(const Poly* p, unsigned int k);
+/**
+ * Podnosi wielomian `p` do `k`-tej potęgi
+ * @param[in] p : wielomian (podstawa)
+ * @param[in] k : wykładnik
+ * @return `p ^ k`
+ */
+Poly PolyExp(const Poly *p, unsigned int k);
 
+/**
+ * Podstawia kolejne wielomiany z `x` pod zmienne wielomianu `p`, jeśli count jest mniejszy niż liczba zmiennych w wielomianie, pod pozostałe zmienne podstawiane jest `0`
+ * @param[in] p : wielomian, w którego będziemy podstawiać
+ * @param[in] count : liczba wielomianów do podstawienia pod zmienne
+ * @param[in] x : tablica wielomianów do podstawiania
+ * @return wielomian, w ktorym na kolejne zmienne podstawione są wielomiany z `x` (lub 0 jeśli brakło wielomianów w tablicy)
+ */
 Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]);
 
 #endif /* __POLY_H__ */

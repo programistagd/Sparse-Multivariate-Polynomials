@@ -131,22 +131,25 @@ void CalcDegBy(PolyStack *stack, unsigned int idx)
     printf("%d\n", deg);
 }
 
-void CalcCompose(PolyStack *stack, unsigned int count){
+void CalcCompose(PolyStack *stack, unsigned int count)
+{
     ENSURESTACKSIZE(count); //upewniamy się dwukrotnie, na wypadek gdyby 1+count miał spowodować int overflow
     ENSURESTACKSIZE(1 + count);
 
     Poly p = PolyStackPop(stack);
-    Poly* x = malloc(sizeof(Poly) * count);
+    Poly *x = malloc(sizeof(Poly) * count);
     assert(x != NULL);
 
-    for(unsigned int i = 0; i < count; ++i){
+    for (unsigned int i = 0; i < count; ++i)
+    {
         x[i] = PolyStackPop(stack);
     }
 
     Poly res = PolyCompose(&p, count, x);
 
     PolyDestroy(&p);
-    for(unsigned int i = 0; i < count; ++i){
+    for (unsigned int i = 0; i < count; ++i)
+    {
         PolyDestroy(&x[i]);
     }
     free(x);
